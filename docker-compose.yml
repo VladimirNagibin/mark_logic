@@ -1,6 +1,6 @@
-services: 
+services:
   mark:
-    build: 
+    build:
       context: ./mark
       dockerfile: Dockerfile
     depends_on:

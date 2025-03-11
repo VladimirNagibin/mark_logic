@@ -1,16 +1,17 @@
 import logging
-import os
-import sys
 from logging import config
 from logging.handlers import RotatingFileHandler
+import os
+import sys
 from typing import Any
 
 from .settings import settings
 
 
-def create_directory(path: str):
+def create_directory(path: str) -> None:
     if not os.path.exists(path):
         os.makedirs(path)
+
 
 create_directory(os.path.join(settings.BASE_DIR, "logs"))
 

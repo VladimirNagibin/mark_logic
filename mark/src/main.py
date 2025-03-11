@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+import uvicorn
 
 from core.logger import LOGGING, logger
 from core.settings import settings
@@ -24,11 +24,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# app.include_router(upload_file_router, prefix="/api/v1/files", tags=["files"])
+# app.include_router(upload_file_router, prefix="/api/v1/les", tags=["les"])
 
-@app.get("/")
-async def main():
+
+@app.get("/")  # type: ignore
+async def main() -> dict[str, str]:
     return {"message": "Hello world"}
+
 
 if __name__ == "__main__":
     logger.info("Start mark.")
