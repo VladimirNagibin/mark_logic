@@ -75,11 +75,16 @@ LOGGING: dict[str, Any] = {
     },
 }
 
+logging.basicConfig(
+    level=logging.INFO, format=LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S"
+)
+
 config.dictConfig(config=LOGGING)
 logger = logging.getLogger("mark")
 
 logger.setLevel(settings.LOG_LEVEL)
 handler = logging.StreamHandler(stream=sys.stdout)
+
 logger.addHandler(handler)
 file_handler = RotatingFileHandler(
     os.path.join(settings.BASE_DIR, "logs", "log.log"),
@@ -87,4 +92,5 @@ file_handler = RotatingFileHandler(
     backupCount=3,
     encoding="utf-8",
 )
+
 logger.addHandler(file_handler)
