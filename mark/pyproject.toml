@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "mark"
+version = "0.1.0"
+description = ""
+authors = [""]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+psycopg = {version = "^3.1.18", extras = ["binary"]}
+pydantic-settings = "^2.6.1"
+uvicorn = "^0.34.0"
+
+[tool.poetry.group.dev.dependencies]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 110

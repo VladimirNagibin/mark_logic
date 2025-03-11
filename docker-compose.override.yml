@@ -1,0 +1,15 @@
+services:
+  mark:
+    volumes:
+      - ./app/src:/opt/app
+      - ./.envs/.env.mark.example:/opt/app/src/.env
+    env_file:
+      - ./.envs/.env.mark.example
+    ports:
+     - 8000:8000 
+
+  db:
+    ports:
+     - 5442:5432
+    env_file:
+      - ./.envs/.env.mark.example
