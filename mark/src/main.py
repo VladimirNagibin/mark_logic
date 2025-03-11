@@ -26,6 +26,9 @@ app = FastAPI(
 
 # app.include_router(upload_file_router, prefix="/api/v1/files", tags=["files"])
 
+@app.get("/")
+async def main():
+    return {"message": "Hello world"}
 
 if __name__ == "__main__":
     logger.info("Start mark.")

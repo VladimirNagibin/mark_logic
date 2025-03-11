@@ -1,8 +1,8 @@
 services:
   mark:
     volumes:
-      - ./app/src:/opt/app
-      - ./.envs/.env.mark.example:/opt/app/src/.env
+      - ./mark/src:/opt/app
+    #  - ./.envs/.env.mark.example:/opt/app/.env
     env_file:
       - ./.envs/.env.mark.example
     ports:

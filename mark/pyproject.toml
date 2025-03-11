@@ -1,23 +1,67 @@
 [tool.poetry]
 name = "mark"
 version = "0.1.0"
-description = ""
-authors = [""]
+description = "marking of goods"
+authors = ["VlNagibin"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.111.0"
-psycopg = {version = "^3.1.18", extras = ["binary"]}
+fastapi = "^0.115.11"
+orjson = "^3.10.15"
+asyncpg = "^0.30.0"
 pydantic-settings = "^2.6.1"
 uvicorn = "^0.34.0"
+SQLAlchemy = {version = "2.0.37", extras = ["asyncio"]}
+Alembic = "1.14.0"
 
 [tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+pytest = "^7.4.3"
+pytest-asyncio = "^0.21.1"
+pytest-subtests = "^0.11.0"
+flake8 = "^7.1.2"
+mypy = "^1.15.0"
+isort = "^6.0.1"
+pre-commit = "^4.1.0"
 
+[tool.poetry.group.tests.dependencies]
+pytest = "^7.4.3"
+pytest-asyncio = "^0.21.1"
+pytest-subtests = "^0.11.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 110
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+force_grid_wrap = 0
+use_parentheses = true
+multi_line_output = 3
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+[tool.mypy]
+python_version = 3.11
+follow_imports = "skip"
+
+[tool.pytest.ini_options]
+# asyncio_mode=auto
+norecursedirs = "env/* venv/*"
+addopts = [
+    "-vv",
+    "-p",
+    "no:cacheprovider",
+    "--strict-markers",
+]
+testpaths = "functional/"
+python_files = "test_*.py"
+markers = [
+    "test",
+    "core"
+]
