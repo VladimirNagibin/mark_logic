@@ -29,6 +29,7 @@ app = FastAPI(
 
 @app.get("/")  # type: ignore
 async def main() -> dict[str, str]:
+    logger.info("main.")
     return {"message": "Hello world"}
 
 

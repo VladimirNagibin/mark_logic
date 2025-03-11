@@ -2,7 +2,6 @@ import logging
 from logging import config
 from logging.handlers import RotatingFileHandler
 import os
-import sys
 from typing import Any
 
 from .settings import settings
@@ -75,22 +74,16 @@ LOGGING: dict[str, Any] = {
     },
 }
 
-logging.basicConfig(
-    level=logging.INFO, format=LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
-config.dictConfig(config=LOGGING)
+config.dictConfig(LOGGING)
 logger = logging.getLogger("mark")
 
 logger.setLevel(settings.LOG_LEVEL)
-handler = logging.StreamHandler(stream=sys.stdout)
-
-logger.addHandler(handler)
+formatter = logging.Formatter(fmt=LOG_FORMAT)
 file_handler = RotatingFileHandler(
     os.path.join(settings.BASE_DIR, "logs", "log.log"),
     maxBytes=500000,
     backupCount=3,
     encoding="utf-8",
 )
-
+file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
