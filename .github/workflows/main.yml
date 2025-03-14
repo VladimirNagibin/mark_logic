@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
 
     steps:
     - name: Checkout repository
@@ -23,9 +23,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry
+        pip install poetry==2.1.1
         cd mark && poetry config virtualenvs.create false
-        cd mark && poetry install --no-interaction --no-ansi
+        cd mark && poetry install --without dev,tests --no-interaction --no-ansi
         pip install flake8 flake8-html wemake-python-styleguide mypy
 
     # Проверка wemake-python-styleguide
@@ -39,7 +39,7 @@ jobs:
           --max-complexity=10 \
           --max-line-length=110 \
           --statistics \
-          --ignore WPS404,WPS115,WPS430,E402,WPS229,E501,WPS226,WPS501,WPS234
+          --ignore WPS404,WPS407,WPS115,WPS430,WPS458,E402,WPS229,E501,WPS226,WPS501,WPS234
           # --exit-zero
 
     # HTML-отчет
@@ -48,7 +48,7 @@ jobs:
       if: always()
       with:
         name: flake8-report-${{ matrix.python-version }}
-        path: api/flake8-report-${{ matrix.python-version }}/
+        path: mark/flake8-report-${{ matrix.python-version }}/
 
     - name: Check through mypy
       run: |

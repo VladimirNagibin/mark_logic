@@ -37,8 +37,8 @@ if __name__ == "__main__":
     logger.info("Start mark.")
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=8000,
+        host=settings.APP_HOST,
+        port=settings.APP_PORT,
         log_config=LOGGING,
         log_level=settings.LOG_LEVEL.lower(),
         reload=settings.APP_RELOAD,

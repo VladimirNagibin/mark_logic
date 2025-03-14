@@ -1,10 +1,10 @@
-import logging
+import logging as log
 import os
 from logging import config
 from logging.handlers import RotatingFileHandler
 from typing import Any
 
-from .settings import settings
+from src.core.settings import settings
 
 
 def create_directory(path: str) -> None:
@@ -75,13 +75,13 @@ LOGGING: dict[str, Any] = {
 }
 
 config.dictConfig(LOGGING)
-logger = logging.getLogger("mark")
+logger = log.getLogger("mark")
 
 logger.setLevel(settings.LOG_LEVEL)
-formatter = logging.Formatter(fmt=LOG_FORMAT)
+formatter = log.Formatter(fmt=LOG_FORMAT)
 file_handler = RotatingFileHandler(
     os.path.join(settings.BASE_DIR, "logs", "log.log"),
-    maxBytes=500000,
+    maxBytes=settings.LOGGING_FILE_MAX_BYTES,
     backupCount=3,
     encoding="utf-8",
 )
