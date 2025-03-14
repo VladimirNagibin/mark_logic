@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-import uvicorn
 
 from core.logger import LOGGING, logger
 from core.settings import settings
