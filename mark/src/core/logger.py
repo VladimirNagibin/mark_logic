@@ -1,6 +1,6 @@
-import logging
-import logging.config
+import logging as log
 import os
+from logging import config
 from logging.handlers import RotatingFileHandler
 from typing import Any
 
@@ -74,11 +74,11 @@ LOGGING: dict[str, Any] = {
     },
 }
 
-logging.config.dictConfig(LOGGING)
-logger = logging.getLogger("mark")
+config.dictConfig(LOGGING)
+logger = log.getLogger("mark")
 
 logger.setLevel(settings.LOG_LEVEL)
-formatter = logging.Formatter(fmt=LOG_FORMAT)
+formatter = log.Formatter(fmt=LOG_FORMAT)
 file_handler = RotatingFileHandler(
     os.path.join(settings.BASE_DIR, "logs", "log.log"),
     maxBytes=settings.LOGGING_FILE_MAX_BYTES,
