@@ -4,7 +4,7 @@ from logging import config
 from logging.handlers import RotatingFileHandler
 from typing import Any
 
-from src.core.settings import settings
+from core.settings import settings
 
 
 def create_directory(path: str) -> None:
