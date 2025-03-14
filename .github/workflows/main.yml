@@ -1,0 +1,60 @@
+name: Main mark_logic workflow
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        cd mark && poetry config virtualenvs.create false
+        cd mark && poetry install --no-interaction --no-ansi
+        pip install flake8 flake8-html wemake-python-styleguide mypy
+
+    # Проверка wemake-python-styleguide
+    - name: Lint with wemake-python-styleguide
+      run: |
+        cd mark && mkdir flake8-report-${{ matrix.python-version }}
+        flake8 src \
+          --format=html \
+          --htmldir=flake8-report-${{ matrix.python-version }} \
+          --count \
+          --max-complexity=10 \
+          --max-line-length=110 \
+          --statistics \
+          --ignore WPS404,WPS115,WPS430,E402,WPS229,E501,WPS226,WPS501,WPS234
+          # --exit-zero
+
+    # HTML-отчет
+    - name: Publish Flake8 HTML Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: flake8-report-${{ matrix.python-version }}
+        path: api/flake8-report-${{ matrix.python-version }}/
+
+    - name: Check through mypy
+      run: |
+        cd mark
+        mypy src \
+          --ignore-missing-imports \
+          --show-error-codes \
+          --pretty \
+          --strict
