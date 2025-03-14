@@ -23,9 +23,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry
+        pip install poetry==2.1.1
         cd mark && poetry config virtualenvs.create false
-        cd mark && poetry install --no-interaction --no-ansi
+        cd mark && poetry install --without dev,tests --no-interaction --no-ansi
         pip install flake8 flake8-html wemake-python-styleguide mypy
 
     # Проверка wemake-python-styleguide
@@ -48,7 +48,7 @@ jobs:
       if: always()
       with:
         name: flake8-report-${{ matrix.python-version }}
-        path: api/flake8-report-${{ matrix.python-version }}/
+        path: mark/flake8-report-${{ matrix.python-version }}/
 
     - name: Check through mypy
       run: |
