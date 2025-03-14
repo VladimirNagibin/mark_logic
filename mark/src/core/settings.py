@@ -18,6 +18,7 @@ class Settings(BaseSettings):  # type: ignore
     POSTGRES_DB_ECHO: bool = True
 
     BASE_DIR: str = str(Path(__file__).resolve().parent.parent)
+    LOGGING_FILE_MAX_BYTES: int = 500_000
 
     @property
     def dsn(self) -> str:
