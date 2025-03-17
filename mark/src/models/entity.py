@@ -1,5 +1,5 @@
 from datetime import date
-from enum import Enum
+from enum import IntEnum
 
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.orm import Mapped, mapped_column
@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from db.postgres import Base
 
 
-class StatusEnum(int, Enum):
+class StatusEnum(IntEnum):
     """
     Статусы товара ЧЗ:
     0 - Не определено
@@ -43,7 +43,13 @@ class Product(Base):
     doc_out: Mapped[str | None]
     data_out: Mapped[date | None]
     status: Mapped[int] = mapped_column(
-        PgEnum(StatusEnum, name="product_status_enum"), default=0, unique=True
+        PgEnum(
+            StatusEnum,
+            name="product_status_enum",
+            create_type=False,
+            default=0,
+            server_default="NOT_DEFINED",
+        )
     )
 
     def __init__(
