@@ -5,6 +5,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
+from api.v1.products import product_router
 from core.logger import LOGGING, logger
 from core.settings import settings
 
@@ -24,7 +25,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# app.include_router(upload_file_router, prefix="/api/v1/les", tags=["les"])
+app.include_router(product_router, prefix="/api/v1/qr", tags=["qr"])
 
 
 @app.get("/")  # type: ignore
