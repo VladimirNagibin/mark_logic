@@ -28,12 +28,6 @@ app = FastAPI(
 app.include_router(product_router, prefix="/api/v1/qr", tags=["qr"])
 
 
-@app.get("/")  # type: ignore
-async def main() -> dict[str, str]:
-    logger.info("main.")
-    return {"message": "Hello world"}
-
-
 if __name__ == "__main__":
     logger.info("Start mark.")
     uvicorn.run(

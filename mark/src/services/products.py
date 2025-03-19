@@ -16,7 +16,7 @@ from models.entity import Product
 class AbstractProductRepository(ABC):
 
     @abstractmethod
-    async def create_product(self, product: ProductScheme) -> ProductScheme:
+    async def create_product(self, product: ProductScheme) -> Product:
         """
         Метод для создания товара.
         """
@@ -50,7 +50,7 @@ class ProductRepository(AbstractProductRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_product(self, product: ProductScheme) -> ProductScheme:
+    async def create_product(self, product: ProductScheme) -> Product:
         existing_product = await self.session.execute(
             select(Product).filter(
                 Product.code_mark_head == product.code_mark_head
@@ -60,8 +60,7 @@ class ProductRepository(AbstractProductRepository):
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT, detail="QR уще существует"
             )
-
-        new_product = Product(**product)
+        new_product = Product(**product.model_dump())
         self.session.add(new_product)
         await self.session.commit()
         await self.session.refresh(new_product)
