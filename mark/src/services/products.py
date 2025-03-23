@@ -3,12 +3,15 @@ from functools import lru_cache
 from http import HTTPStatus
 
 from fastapi import Depends, HTTPException
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from api.v1.api_models.products import Product as ProductScheme
 from db.postgres import get_session
 from models.entity import Product
+
+# from sqlalchemy.future import select
+
 
 # from typing import AsyncGenerator
 
@@ -51,15 +54,29 @@ class ProductRepository(AbstractProductRepository):
         self.session = session
 
     async def create_product(self, product: ProductScheme) -> Product:
-        existing_product = await self.session.execute(
-            select(Product).filter(
-                Product.code_mark_head == product.code_mark_head
+        stmt = select(
+            exists().where(
+                (Product.code_mark_head == product.code_mark_head)
+                | (Product.name == product.name)
             )
         )
-        if existing_product.scalar_one_or_none() is not None:
+        result = await self.session.execute(stmt)
+        is_duplicate = result.scalar()
+        if is_duplicate:
             raise HTTPException(
-                status_code=HTTPStatus.CONFLICT, detail="QR уще существует"
+                status_code=HTTPStatus.CONFLICT,
+                detail="QR или name уще существует",
             )
+        # existing_product = await self.session.execute(
+        #    select(Product).filter(
+        #        Product.code_mark_head == product.code_mark_head
+        #    )
+        # )
+        # if existing_product.scalar_one_or_none() is not None:
+        #    raise HTTPException(
+        #        status_code=HTTPStatus.CONFLICT, detail="QR уще существует"
+        #    )
+
         new_product = Product(**product.model_dump())
         self.session.add(new_product)
         await self.session.commit()
@@ -101,7 +118,7 @@ class ProductService:
     async def get_product_by_qr(self, product_qr: str) -> ProductScheme | None:
         return await self.repository.get_product_by_qr(product_qr)
 
-    async def create_product(self, product: ProductScheme) -> ProductScheme:
+    async def create_product(self, product: ProductScheme) -> Product:
         return await self.repository.create_product(product)
 
     async def del_product_by_qr(self, product_qr: str) -> None:
