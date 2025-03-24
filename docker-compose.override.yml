@@ -8,6 +8,12 @@ services:
     ports:
      - 8000:8000
 
+  mark-migrations:
+    volumes:
+      - ./mark/src:/opt/app
+    env_file:
+      - ./.envs/.env.mark.example
+
   db:
     ports:
      - 5442:5432

@@ -36,8 +36,8 @@ class Product(Base):
     name: Mapped[str] = mapped_column(unique=True)
     code_work: Mapped[int | None]
     code_hs: Mapped[int | None]
-    code_mark_head: Mapped[str]
-    code_mark: Mapped[str]
+    code_mark_head: Mapped[str] = mapped_column(unique=True)
+    code_mark: Mapped[str | None]
     doc_in: Mapped[str]
     data_in: Mapped[date | None]
     doc_out: Mapped[str | None]
@@ -56,8 +56,8 @@ class Product(Base):
         self,
         name: str,
         code_mark_head: str,
-        code_mark: str,
         doc_in: str,
+        code_mark: str | None = None,
         code_work: int | None = None,
         code_hs: int | None = None,
         data_in: date | None = None,
