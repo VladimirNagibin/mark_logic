@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("code_work", sa.Integer(), nullable=True),
         sa.Column("code_hs", sa.Integer(), nullable=True),
         sa.Column("code_mark_head", sa.String(), nullable=False),
-        sa.Column("code_mark", sa.String(), nullable=False),
+        sa.Column("code_mark", sa.String(), nullable=True),
         sa.Column("doc_in", sa.String(), nullable=False),
         sa.Column("data_in", sa.Date(), nullable=True),
         sa.Column("doc_out", sa.String(), nullable=True),
@@ -63,6 +63,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
+        sa.UniqueConstraint("code_mark_head"),
     )
     # ### end Alembic commands ###
 

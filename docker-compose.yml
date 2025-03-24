@@ -7,6 +7,16 @@ services:
       db:
         condition: service_healthy
 
+  mark-migrations:
+    build:
+      context: ./mark
+      dockerfile: Dockerfile
+    restart: no
+    depends_on:
+      db:
+        condition: service_healthy
+    command: alembic upgrade head
+
   db:
     image: postgres:17.4-bookworm
     restart: always
