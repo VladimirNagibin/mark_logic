@@ -17,6 +17,12 @@ services:
         condition: service_healthy
     command: alembic upgrade head
 
+  mark-test:
+    build:
+      context: ./mark
+      dockerfile: Dockerfile_tests
+    restart: no
+
   db:
     image: postgres:17.4-bookworm
     restart: always
