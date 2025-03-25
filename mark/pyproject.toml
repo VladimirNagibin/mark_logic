@@ -16,6 +16,8 @@ uvicorn = "^0.34.0"
 SQLAlchemy = {version = "^2.0.37", extras = ["asyncio"]}
 Alembic = "^1.14.0"
 sqladmin = "^0.20.1"
+itsdangerous = "^2.2.0"
+python-jose = {extras = ["cryptography"], version = "^3.4.0"}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
