@@ -4,10 +4,13 @@ from typing import AsyncIterator
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+from sqladmin import Admin
 
+from admin.admin_models import ProductAdmin
 from api.v1.products import product_router
 from core.logger import LOGGING, logger
 from core.settings import settings
+from db.postgres import engine
 
 
 @asynccontextmanager
@@ -26,6 +29,8 @@ app = FastAPI(
 )
 
 app.include_router(product_router, prefix="/api/v1/qr", tags=["qr"])
+admin = Admin(app, engine)
+admin.add_view(ProductAdmin)
 
 
 if __name__ == "__main__":
