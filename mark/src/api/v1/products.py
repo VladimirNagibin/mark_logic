@@ -58,5 +58,13 @@ async def update_product(
     product_data: ProductPutch,
     product_service: ProductService = Depends(get_product_service),
 ) -> ProductScheme:
-    product = await product_service.update_product(product_qr, product_data)
+    try:
+        product = await product_service.update_product(
+            product_qr, product_data
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"product not found: {e}",
+        )
     return ProductScheme.model_validate(product)  # type: ignore

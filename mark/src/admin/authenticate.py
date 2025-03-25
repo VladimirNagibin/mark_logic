@@ -3,13 +3,16 @@ from jose import jwt
 from jose.exceptions import JWTError
 from sqladmin.authentication import AuthenticationBackend
 
-SECRET_KEY = "your-secret-key"
-ALGORITHM = "HS256"
+from core.settings import settings
 
 
 class BasicAuthBackend(AuthenticationBackend):  # type: ignore
-    def __init__(self, username: str, password: str):
-        super().__init__(SECRET_KEY)
+    def __init__(
+        self,
+        username: str = settings.USER_ADMIN,
+        password: str = settings.PASS_ADMIN,
+    ):
+        super().__init__(settings.SECRET_KEY)
         self.username = username
         self.password = password
 
@@ -29,7 +32,11 @@ class BasicAuthBackend(AuthenticationBackend):  # type: ignore
             )
 
         # Генерация JWT токена
-        token = jwt.encode({"sub": username}, SECRET_KEY, algorithm=ALGORITHM)
+        token = jwt.encode(
+            {"sub": username},
+            settings.SECRET_KEY,
+            algorithm=settings.ALGORITHM,
+        )
 
         # Сохранение токена в сессии
         request.session.update({"token": token})
@@ -46,7 +53,9 @@ class BasicAuthBackend(AuthenticationBackend):  # type: ignore
             return False
 
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            )
             username = payload.get("sub")
             return bool(username == self.username)  # Проверка роли
         except JWTError:

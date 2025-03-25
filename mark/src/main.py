@@ -30,7 +30,7 @@ app = FastAPI(
 )
 
 app.include_router(product_router, prefix="/api/v1/qr", tags=["qr"])
-auth_backend = BasicAuthBackend(username="admin", password="password")
+auth_backend = BasicAuthBackend()
 admin = Admin(app, engine, authentication_backend=auth_backend)
 admin.add_view(ProductAdmin)
 
