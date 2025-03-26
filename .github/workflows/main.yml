@@ -38,7 +38,7 @@ jobs:
           --count \
           --max-complexity=10 \
           --max-line-length=79 \
-          --per-file-ignores="migration/versions/*: WPS102" \
+          --per-file-ignores="src/migration/versions/*: WPS102" \
           --statistics \
           --ignore WPS115,WPS601,WPS211,WPS230,WPS404
           # --exit-zero
