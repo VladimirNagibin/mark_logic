@@ -1,32 +1,13 @@
 from http import HTTPStatus
-from typing import Any, Generator
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.v1.api_models.products import Product as ProductScheme
 from api.v1.api_models.products import ProductPutch
-from api.v1.products import product_router
 from models.entity import StatusEnum
-from services.products import ProductService, get_product_service
-
-
-def get_test_app(mock_service: ProductService) -> FastAPI:
-    app = FastAPI()
-    app.dependency_overrides[get_product_service] = lambda: mock_service
-    app.include_router(product_router)
-    return app
-
-
-@pytest.fixture  # type: ignore[misc]
-def mock_product_service() -> Generator[MagicMock, Any, None]:
-    mock = MagicMock(spec=ProductService)
-    mock.get_product_by_qr = AsyncMock()
-    mock.create_product = AsyncMock()
-    mock.update_product = AsyncMock()
-    return mock
+from tests.conftest import get_test_app
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
