@@ -15,10 +15,8 @@ def create_directory(path: str) -> None:
 create_directory(os.path.join(settings.BASE_DIR, "logs"))
 
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-LOG_DEFAULT_HANDLERS = [
-    "console",
-]
-LOGGING: dict[str, Any] = {
+LOG_DEFAULT_HANDLERS = ("console",)
+LOGGING: dict[str, Any] = {  # noqa: WPS407
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -28,7 +26,7 @@ LOGGING: dict[str, Any] = {
             "fmt": "%(levelprefix)s %(message)s",
             "use_colors": None,
         },
-        "access": {
+        "access": {  # noqa: WPS226
             "()": "uvicorn.logging.AccessFormatter",
             "fmt": (
                 "%(levelprefix)s %(client_addr)s - '%(request_line)s' "
@@ -36,11 +34,11 @@ LOGGING: dict[str, Any] = {
             ),
         },
     },
-    "handlers": {
+    "handlers": {  # noqa: WPS226
         "console": {
-            "level": "DEBUG",
+            "level": "DEBUG",  # noqa: WPS226
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "verbose",  # noqa: WPS226
         },
         "default": {
             "formatter": "default",
@@ -56,7 +54,7 @@ LOGGING: dict[str, Any] = {
     "loggers": {
         "": {
             "handlers": LOG_DEFAULT_HANDLERS,
-            "level": "INFO",
+            "level": "INFO",  # noqa: WPS226
         },
         "uvicorn.error": {
             "level": "INFO",

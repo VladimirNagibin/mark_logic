@@ -2,11 +2,10 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.v1.api_models.products import Product as ProductScheme
+from api.v1.api_models.products import ProductPutch
 from core.logger import logger
 from services.products import ProductService, get_product_service
-
-from .api_models.products import Product as ProductScheme
-from .api_models.products import ProductPutch
 
 product_router = APIRouter()
 
@@ -39,10 +38,10 @@ async def create_product(
 ) -> ProductScheme:
     try:
         product_new = await product_service.create_product(product)
-    except Exception as e:
+    except Exception as error:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail=f"product not created: {e}",
+            detail=f"product not created: {error}",
         )
     logger.info(type(product))
     return ProductScheme.model_validate(product_new)  # type: ignore
@@ -58,5 +57,13 @@ async def update_product(
     product_data: ProductPutch,
     product_service: ProductService = Depends(get_product_service),
 ) -> ProductScheme:
-    product = await product_service.update_product(product_qr, product_data)
+    try:
+        product = await product_service.update_product(
+            product_qr, product_data
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"product not found: {error}",
+        )
     return ProductScheme.model_validate(product)  # type: ignore

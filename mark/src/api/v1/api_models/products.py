@@ -31,5 +31,4 @@ class ProductPutch(BaseModel):  # type: ignore
     data_out: date | None = None
     status: StatusEnum | None = None
 
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")

@@ -19,21 +19,21 @@ class AbstractProductRepository(ABC):
         """
         Метод для создания товара.
         """
-        pass
+        ...
 
     @abstractmethod
     async def get_product_by_qr(self, product_qr: str) -> Product | None:
         """
         Метод для получения данных по товару.
         """
-        pass
+        ...  # noqa: WPS463
 
     @abstractmethod
     async def del_product_by_qr(self, product_qr: str) -> None:
         """
         Метод для удаления товара.
         """
-        pass
+        ...
 
     @abstractmethod
     async def update_product(
@@ -42,7 +42,7 @@ class AbstractProductRepository(ABC):
         """
         Метод для обновления товара.
         """
-        pass
+        ...
 
 
 class ProductRepository(AbstractProductRepository):
@@ -53,11 +53,11 @@ class ProductRepository(AbstractProductRepository):
         stmt = select(
             exists().where(
                 (Product.code_mark_head == product.code_mark_head)
-                | (Product.name == product.name)
+                | (Product.name == product.name)  # noqa: W503
             )
         )
-        result = await self.session.execute(stmt)
-        is_duplicate = result.scalar()
+        product_result = await self.session.execute(stmt)
+        is_duplicate = product_result.scalar()
         if is_duplicate:
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT,
@@ -72,19 +72,19 @@ class ProductRepository(AbstractProductRepository):
         return new_product
 
     async def get_product_by_qr(self, product_qr: str) -> Product | None:
-        result = await self.session.execute(
+        product_result = await self.session.execute(
             select(Product).filter(Product.code_mark_head == product_qr)
         )
-        product = result.scalar_one_or_none()
+        product = product_result.scalar_one_or_none()
         if not product:
             return None
         return product  # type: ignore
 
     async def del_product_by_qr(self, product_qr: str) -> None:
-        result = await self.session.execute(
+        product_result = await self.session.execute(
             select(Product).filter(Product.code_mark_head == product_qr)
         )
-        product = result.scalar_one_or_none()
+        product = product_result.scalar_one_or_none()
         if not product:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND, detail="QR не найден"
@@ -95,18 +95,18 @@ class ProductRepository(AbstractProductRepository):
     async def update_product(
         self, product_qr: str, product: ProductPutch
     ) -> Product:
-        result = await self.session.execute(
+        product_result = await self.session.execute(
             select(Product).filter(Product.code_mark_head == product_qr)
         )
-        priduct_upd = result.scalar_one_or_none()
+        priduct_upd = product_result.scalar_one_or_none()
         if not priduct_upd:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND, detail="Товар не найден"
             )
         update_data = product.model_dump(exclude_unset=True)
 
-        for key, value in update_data.items():
-            setattr(priduct_upd, key, value)
+        for key, attr in update_data.items():
+            setattr(priduct_upd, key, attr)
 
         await self.session.commit()
         await self.session.refresh(priduct_upd)

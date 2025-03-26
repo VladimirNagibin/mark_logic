@@ -17,6 +17,11 @@ class Settings(BaseSettings):  # type: ignore
     POSTGRES_DB: str = "mark"
     POSTGRES_DB_ECHO: bool = True
 
+    SECRET_KEY: str = "your-secret-key"
+    ALGORITHM: str = "HS256"
+    USER_ADMIN: str = "admin"
+    PASS_ADMIN: str = "pass"
+
     BASE_DIR: str = str(Path(__file__).resolve().parent.parent)
     LOGGING_FILE_MAX_BYTES: int = 500_000
 

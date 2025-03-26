@@ -44,7 +44,8 @@ class Base(AsyncAttrs, DeclarativeBase):  # type: ignore[misc]
 
     @declared_attr.directive  # type: ignore
     def __tablename__(cls) -> str:
-        return str(cls.__name__.lower()) + "s"
+        cls_name = cls.__name__.lower()
+        return f"{cls_name}s"
 
 
 async def create_database() -> None:
@@ -61,7 +62,8 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         try:
             yield session
-            await session.commit()
         except Exception:
             await session.rollback()
             raise
+        else:
+            await session.commit()
