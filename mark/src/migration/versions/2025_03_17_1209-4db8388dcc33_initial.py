@@ -1,3 +1,5 @@
+# noqa: WPS102
+
 """Initial
 
 Revision ID: 4db8388dcc33

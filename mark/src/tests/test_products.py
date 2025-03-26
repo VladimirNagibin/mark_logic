@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,6 +10,8 @@ from api.v1.api_models.products import ProductPutch
 from models.entity import StatusEnum
 from tests.conftest import get_test_app
 
+DOC_IN_FIELD = "doc_in"
+
 
 @pytest.mark.asyncio  # type: ignore[misc]
 async def test_fetch_product_success(mock_product_service: MagicMock) -> None:
@@ -17,7 +20,7 @@ async def test_fetch_product_success(mock_product_service: MagicMock) -> None:
     mock_product = ProductScheme(
         code_mark_head=test_qr,
         name="Test Product",
-        doc_in="doc_in",
+        doc_in=DOC_IN_FIELD,
         status=StatusEnum.NOT_DEFINED,
     )
 
@@ -62,7 +65,7 @@ async def test_create_product_success(mock_product_service: MagicMock) -> None:
     new_product = ProductScheme(
         code_mark_head="new_qr",
         name="New Product",
-        doc_in="doc_in",
+        doc_in=DOC_IN_FIELD,
         status=StatusEnum.NOT_DEFINED,
     )
 
@@ -87,7 +90,7 @@ async def test_create_product_failure(mock_product_service: MagicMock) -> None:
     not_correct_product = ProductScheme(
         code_mark_head="not_correct_qr",
         name="Not correct Product",
-        doc_in="doc_in",
+        doc_in=DOC_IN_FIELD,
         status=StatusEnum.NOT_DEFINED,
     )
     mock_product_service.create_product.side_effect = Exception("DB error")
@@ -107,28 +110,31 @@ async def test_create_product_failure(mock_product_service: MagicMock) -> None:
 @pytest.mark.asyncio  # type: ignore[misc]
 async def test_update_product_success(mock_product_service: MagicMock) -> None:
     # Arrange
-    test_qr = "existing_qr"
-    update_data = ProductPutch(name="Updated Name")
-    updated_product = ProductScheme(
-        code_mark_head="existing_qr",
-        name="Updated Name",
-        doc_in="doc_in",
-        status=StatusEnum.NOT_DEFINED,
-    )
-    mock_product_service.update_product.return_value = updated_product
+    test_data: dict[str, Any] = {
+        "qr": "existing_qr",
+        "update_data": ProductPutch(name="Updated Name"),
+        "updated_product": ProductScheme(
+            code_mark_head="existing_qr",
+            name="Updated Name",
+            doc_in=DOC_IN_FIELD,
+            status=StatusEnum.NOT_DEFINED,
+        ),
+    }
 
-    # Создаем тестовое приложение с моком
-    test_app = get_test_app(mock_product_service)
-    client = TestClient(test_app)
+    mock_product_service.update_product.return_value = test_data[
+        "updated_product"
+    ]
 
-    # Act
-    response = client.patch(f"{test_qr}", json=update_data.model_dump())
+    # Act & Assert
+    with TestClient(get_test_app(mock_product_service)) as client:
+        response = client.patch(
+            f"/{test_data['qr']}", json=test_data["update_data"].model_dump()
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert response.json() == test_data["updated_product"].model_dump()
 
-    # Assert
-    assert response.status_code == HTTPStatus.OK
-    assert response.json() == updated_product.model_dump()
     mock_product_service.update_product.assert_awaited_once_with(
-        test_qr, update_data
+        test_data["qr"], test_data["update_data"]
     )
 
 

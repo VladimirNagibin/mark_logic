@@ -56,7 +56,7 @@ class BasicAuthBackend(AuthenticationBackend):  # type: ignore
             payload = jwt.decode(
                 token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
             )
-            username = payload.get("sub")
+            username = payload.get("sub")  # noqa: WPS229
             return bool(username == self.username)  # Проверка роли
         except JWTError:
             return False

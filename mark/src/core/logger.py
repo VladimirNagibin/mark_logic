@@ -16,7 +16,7 @@ create_directory(os.path.join(settings.BASE_DIR, "logs"))
 
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 LOG_DEFAULT_HANDLERS = ("console",)
-LOGGING: dict[str, Any] = {
+LOGGING: dict[str, Any] = {  # noqa: WPS407
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -70,7 +70,7 @@ LOGGING: dict[str, Any] = {
         "formatter": "verbose",
         "handlers": LOG_DEFAULT_HANDLERS,
     },
-}  # noqa: WPS407
+}
 
 config.dictConfig(LOGGING)
 logger = log.getLogger("mark")

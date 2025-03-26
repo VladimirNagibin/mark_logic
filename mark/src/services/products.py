@@ -53,7 +53,7 @@ class ProductRepository(AbstractProductRepository):
         stmt = select(
             exists().where(
                 (Product.code_mark_head == product.code_mark_head)
-                | (Product.name == product.name)
+                | (Product.name == product.name)  # noqa: W503
             )
         )
         product_result = await self.session.execute(stmt)
