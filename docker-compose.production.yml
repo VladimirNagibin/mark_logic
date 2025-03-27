@@ -3,6 +3,8 @@ services:
     image: vlnag/mark_logic
     env_file:
       - .env
+    volumes:
+      - ./mark/src/logs:/opt/app/logs
     ports:
      - 8000:8000
     depends_on:

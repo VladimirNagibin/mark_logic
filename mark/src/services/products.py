@@ -17,21 +17,21 @@ class AbstractProductRepository(ABC):
     @abstractmethod
     async def create_product(self, product: ProductScheme) -> Product:
         """
-        Метод для создания товара.
+        Method for creating a product.
         """
         ...
 
     @abstractmethod
     async def get_product_by_qr(self, product_qr: str) -> Product | None:
         """
-        Метод для получения данных по товару.
+        Method for getting product data.
         """
         ...  # noqa: WPS463
 
     @abstractmethod
     async def del_product_by_qr(self, product_qr: str) -> None:
         """
-        Метод для удаления товара.
+        Method for deleting the product.
         """
         ...
 
@@ -40,7 +40,7 @@ class AbstractProductRepository(ABC):
         self, product_qr: str, product: ProductPutch
     ) -> Product:
         """
-        Метод для обновления товара.
+        Method for updating the product.
         """
         ...
 
@@ -61,7 +61,10 @@ class ProductRepository(AbstractProductRepository):
         if is_duplicate:
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT,
-                detail="QR или name уще существует",
+                detail=(
+                    f"QR: {product.code_mark_head} or name: {product.name} "
+                    "still exists"
+                ),
             )
 
         new_product = Product(**product.model_dump())
@@ -87,7 +90,8 @@ class ProductRepository(AbstractProductRepository):
         product = product_result.scalar_one_or_none()
         if not product:
             raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND, detail="QR не найден"
+                status_code=HTTPStatus.NOT_FOUND,
+                detail=f"Product with QR: {product_qr} not found",
             )
         await self.session.delete(product)
         await self.session.commit()
@@ -101,7 +105,8 @@ class ProductRepository(AbstractProductRepository):
         priduct_upd = product_result.scalar_one_or_none()
         if not priduct_upd:
             raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND, detail="Товар не найден"
+                status_code=HTTPStatus.NOT_FOUND,
+                detail=f"Product with QR: {product_qr} not found",
             )
         update_data = product.model_dump(exclude_unset=True)
 
