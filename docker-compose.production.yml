@@ -1,0 +1,39 @@
+services:
+  mark:
+    image: vlnag/mark_logic
+    env_file:
+      - .env
+    ports:
+     - 8000:8000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  mark-migrations:
+    image: vlnag/mark_logic
+    env_file:
+      - .env
+    restart: no
+    depends_on:
+      db:
+        condition: service_healthy
+    command: alembic upgrade head
+
+  db:
+    image: postgres:17.4-bookworm
+    restart: always
+    #ports:
+    # - 5442:5432
+    env_file:
+      - .env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "psql -h localhost -U $${POSTGRES_USER} -c select 1 -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+      start_period: 0s
+      timeout: 10s
+
+volumes:
+  db_data:
