@@ -80,5 +80,5 @@ jobs:
         cd mark && poetry install --without dev,tests --no-interaction --no-ansi
     - name: Tests
       run: |
-        cd mark/
+        # cd mark/
         pytest src/tests
