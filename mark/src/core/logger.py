@@ -80,7 +80,7 @@ formatter = log.Formatter(fmt=LOG_FORMAT)
 file_handler = RotatingFileHandler(
     os.path.join(settings.BASE_DIR, "logs", "log.log"),
     maxBytes=settings.LOGGING_FILE_MAX_BYTES,
-    backupCount=3,
+    backupCount=5,
     encoding="utf-8",
 )
 file_handler.setFormatter(formatter)

@@ -12,8 +12,8 @@ product_router = APIRouter()
 
 @product_router.get(
     "/{product_qr}",
-    summary="Данные по товару",
-    description="Данные по конкретному товару.",
+    summary="product information",
+    description="Information about a specific product.",
 )  # type: ignore
 async def fetch_product(
     product_qr: str,
@@ -21,6 +21,7 @@ async def fetch_product(
 ) -> ProductScheme:
     product = await product_service.get_product_by_qr(product_qr)
     if not product:
+        logger.error(f"Product with QR: {product_qr} not found.")
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="product not found"
         )
@@ -29,8 +30,8 @@ async def fetch_product(
 
 @product_router.post(
     "/",
-    summary="Добавить товар",
-    description="Добавить товар.",
+    summary="add product",
+    description="Add a product.",
 )  # type: ignore
 async def create_product(
     product: ProductScheme,
@@ -39,18 +40,19 @@ async def create_product(
     try:
         product_new = await product_service.create_product(product)
     except Exception as error:
+        logger.error(f"Product : {product} not created. Error: {error}.")
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"product not created: {error}",
         )
-    logger.info(type(product))
+    logger.info(f"Product : {product} created.")
     return ProductScheme.model_validate(product_new)  # type: ignore
 
 
 @product_router.patch(
     "/{product_qr}",
-    summary="Обновить товар",
-    description="Обновить конкретный товар.",
+    summary="update product",
+    description="Update a specific product.",
 )  # type: ignore
 async def update_product(
     product_qr: str,
@@ -62,8 +64,15 @@ async def update_product(
             product_qr, product_data
         )
     except Exception as error:
+        logger.error(
+            f"Product with QR: {product_qr}, data: {product_data} not updated "
+            f"Error: {error}."
+        )
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"product not found: {error}",
         )
+    logger.info(
+        f"Product with QR: {product_qr}, data: {product_data} updated."
+    )
     return ProductScheme.model_validate(product)  # type: ignore

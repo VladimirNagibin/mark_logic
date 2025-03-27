@@ -15,7 +15,7 @@ class Product(BaseModel):  # type: ignore
     data_in: date | None = None
     doc_out: str | None = None
     data_out: date | None = None
-    status: StatusEnum
+    status: StatusEnum = StatusEnum.NOT_DEFINED
 
     model_config = ConfigDict(from_attributes=True)
 
