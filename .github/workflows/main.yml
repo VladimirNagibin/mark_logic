@@ -82,7 +82,9 @@ jobs:
   build_mark_and_push_to_docker_hub:
     name: Push mark Docker image to DockerHub
     runs-on: ubuntu-latest
-    needs: tests, lint
+    needs:
+      - tests
+      - lint
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
