@@ -89,9 +89,9 @@ async def delete_product(
 ) -> dict[str, str]:
     try:
         await product_service.del_product_by_qr(product_qr)
-        return {"result": f"product with QR {product_qr} deleted"}
     except Exception as error:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"product with QR {product_qr} not deleted: {error}",
         )
+    return {"result": f"product with QR {product_qr} deleted"}

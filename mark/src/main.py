@@ -12,7 +12,7 @@ from api.v1.health import health_router
 from api.v1.products import product_router
 from core.logger import LOGGING, logger
 from core.settings import settings
-from db.postgres import engine
+from db.postgres import engine  # noqa: WPS201
 
 
 @asynccontextmanager
