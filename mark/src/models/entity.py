@@ -33,11 +33,12 @@ class StatusEnum(IntEnum):
 
 
 class Product(Base):
-    name: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str]
     code_work: Mapped[int | None]
-    code_hs: Mapped[int | None]
+    code_hs: Mapped[str | None]
     code_mark_head: Mapped[str] = mapped_column(unique=True)
     code_mark: Mapped[str | None]
+    code_mark_mid: Mapped[str | None]
     doc_in: Mapped[str]
     data_in: Mapped[date | None]
     doc_out: Mapped[str | None]
@@ -58,8 +59,9 @@ class Product(Base):
         code_mark_head: str,
         doc_in: str,
         code_mark: str | None = None,
+        code_mark_mid: str | None = None,
         code_work: int | None = None,
-        code_hs: int | None = None,
+        code_hs: str | None = None,
         data_in: date | None = None,
         doc_out: str | None = None,
         data_out: date | None = None,
@@ -69,6 +71,7 @@ class Product(Base):
         self.code_work = code_work
         self.code_mark_head = code_mark_head
         self.code_mark = code_mark
+        self.code_mark_mid = code_mark_mid
         self.doc_in = doc_in
         self.code_hs = code_hs
         self.data_in = data_in

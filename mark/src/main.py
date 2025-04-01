@@ -8,6 +8,7 @@ from sqladmin import Admin
 
 from admin.admin_models import ProductAdmin
 from admin.authenticate import BasicAuthBackend
+from api.v1.health import health_router
 from api.v1.products import product_router
 from core.logger import LOGGING, logger
 from core.settings import settings
@@ -30,6 +31,7 @@ app = FastAPI(
 )
 
 app.include_router(product_router, prefix="/api/v1/qr", tags=["qr"])
+app.include_router(health_router, prefix="/api/v1/health", tags=["health"])
 auth_backend = BasicAuthBackend()
 admin = Admin(app, engine, authentication_backend=auth_backend)
 admin.add_view(ProductAdmin)
