@@ -1,3 +1,4 @@
+# noqa: WPS201
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
@@ -12,7 +13,7 @@ from api.v1.health import health_router
 from api.v1.products import product_router
 from core.logger import LOGGING, logger
 from core.settings import settings
-from db.postgres import engine  # noqa: WPS201
+from db.postgres import engine
 
 
 @asynccontextmanager
