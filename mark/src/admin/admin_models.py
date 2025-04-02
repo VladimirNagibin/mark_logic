@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from models.entity import Product
+from models.entity import Product, ProductHS
 
 
 class ProductAdmin(ModelView, model=Product):  # type: ignore
@@ -47,6 +47,45 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
         Product.name,
         Product.code_mark_head,
         Product.doc_in,
+    ]
+    can_create = True
+    can_edit = True
+    can_delete = True
+    page_size = 50
+
+
+class ProductHSAdmin(ModelView, model=ProductHS):  # type: ignore
+    page_title = "Управление QR"
+    column_list = [
+        ProductHS.name,
+        ProductHS.code_mark_head,
+        ProductHS.brand,
+        ProductHS.code_hs,
+        ProductHS.code_customs,
+        ProductHS.inn_supplier,
+        ProductHS.name_supplier,
+        ProductHS.data_in,
+    ]
+    column_labels = {
+        "name": "Наименование",
+        "code_mark_head": "QR код",
+        "brand": "Бренд",
+        "code_hs": "Код GTIN",
+        "code_customs": "ТН ВЭД",
+        "inn_supplier": "ИНН производителя/импортера",
+        "name_supplier": "Производитель",
+        "data_in": "Дата ввода в оборот",
+    }
+    column_default_sort = [("name", True)]
+    column_sortable_list = [
+        ProductHS.name,
+        ProductHS.brand,
+        ProductHS.inn_supplier,
+        ProductHS.data_in,
+    ]
+    column_searchable_list = [
+        Product.name,
+        Product.code_mark_head,
     ]
     can_create = True
     can_edit = True

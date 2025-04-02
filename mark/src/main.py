@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from sqladmin import Admin
 
-from admin.admin_models import ProductAdmin
+from admin.admin_models import ProductAdmin, ProductHSAdmin
 from admin.authenticate import BasicAuthBackend
 from api.v1.health import health_router
 from api.v1.products import product_router
@@ -35,7 +35,7 @@ app.include_router(health_router, prefix="/api/v1/health", tags=["health"])
 auth_backend = BasicAuthBackend()
 admin = Admin(app, engine, authentication_backend=auth_backend)
 admin.add_view(ProductAdmin)
-
+admin.add_view(ProductHSAdmin)
 
 if __name__ == "__main__":
     logger.info("Start mark.")

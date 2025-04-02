@@ -81,3 +81,37 @@ class Product(Base):
 
     def __repr__(self) -> str:
         return str(self.name)
+
+
+class ProductHS(Base):
+    code_mark_head: Mapped[str] = mapped_column(unique=True)
+    code_hs: Mapped[str]
+    code_customs: Mapped[str | None]
+    inn_supplier: Mapped[str | None]
+    name: Mapped[str]
+    brand: Mapped[str]
+    name_supplier: Mapped[str | None]
+    data_in: Mapped[date]
+
+    def __init__(
+        self,
+        code_mark_head: str,
+        code_hs: str,
+        name: str,
+        brand: str,
+        data_in: date,
+        code_customs: str | None = None,
+        inn_supplier: str | None = None,
+        name_supplier: str | None = None,
+    ) -> None:
+        self.code_mark_head = code_mark_head
+        self.code_hs = code_hs
+        self.name = name
+        self.brand = brand
+        self.data_in = data_in
+        self.code_customs = code_customs
+        self.inn_supplier = inn_supplier
+        self.name_supplier = name_supplier
+
+    def __repr__(self) -> str:
+        return str(self.name)

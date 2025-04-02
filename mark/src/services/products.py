@@ -58,10 +58,7 @@ class ProductRepository(AbstractProductRepository):
         if is_duplicate:
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT,
-                detail=(
-                    f"QR: {product.code_mark_head} or name: {product.name} "
-                    "still exists"
-                ),
+                detail=(f"QR: {product.code_mark_head} exists"),
             )
 
         new_product = Product(**product.model_dump())
