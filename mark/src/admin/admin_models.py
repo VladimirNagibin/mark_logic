@@ -2,6 +2,8 @@ from sqladmin import ModelView
 
 from models.entity import Product, ProductHS
 
+PRODUCT_NAME = "name"
+
 
 class ProductAdmin(ModelView, model=Product):  # type: ignore
     page_title = "Управление QR"
@@ -19,7 +21,7 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
         Product.data_out,
     ]
     column_labels = {
-        "name": (
+        PRODUCT_NAME: (
             "Наименование:(0[NOT_DEFINED] - не определено,"
             "1[ON_BALANCE] - на остатках,"
             "2[DEDUCTED] - списан,"
@@ -36,7 +38,7 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
         "data_out": "Дата выбытия",
         "status": "Статус",
     }
-    column_default_sort = [("name", True)]
+    column_default_sort = [(PRODUCT_NAME, True)]
     column_sortable_list = [
         Product.name,
         Product.data_in,
@@ -67,7 +69,7 @@ class ProductHSAdmin(ModelView, model=ProductHS):  # type: ignore
         ProductHS.data_in,
     ]
     column_labels = {
-        "name": "Наименование",
+        PRODUCT_NAME: "Наименование",
         "code_mark_head": "QR код",
         "brand": "Бренд",
         "code_hs": "Код GTIN",
@@ -76,7 +78,7 @@ class ProductHSAdmin(ModelView, model=ProductHS):  # type: ignore
         "name_supplier": "Производитель",
         "data_in": "Дата ввода в оборот",
     }
-    column_default_sort = [("name", True)]
+    column_default_sort = [(PRODUCT_NAME, True)]
     column_sortable_list = [
         ProductHS.name,
         ProductHS.brand,

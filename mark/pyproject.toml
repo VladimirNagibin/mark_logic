@@ -18,6 +18,9 @@ Alembic = "^1.14.0"
 sqladmin = "^0.20.1"
 itsdangerous = "^2.2.0"
 python-jose = {extras = ["cryptography"], version = "^3.4.0"}
+python-multipart = "^0.0.20"
+pandas = "^2.2.3"
+aiofiles = "^24.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
