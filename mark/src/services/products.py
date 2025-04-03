@@ -51,20 +51,14 @@ class ProductRepository(AbstractProductRepository):
 
     async def create_product(self, product: ProductScheme) -> Product:
         stmt = select(
-            exists().where(
-                (Product.code_mark_head == product.code_mark_head)
-                | (Product.name == product.name)  # noqa: W503
-            )
+            exists().where((Product.code_mark_head == product.code_mark_head))
         )
         product_result = await self.session.execute(stmt)
         is_duplicate = product_result.scalar()
         if is_duplicate:
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT,
-                detail=(
-                    f"QR: {product.code_mark_head} or name: {product.name} "
-                    "still exists"
-                ),
+                detail=(f"QR: {product.code_mark_head} exists"),
             )
 
         new_product = Product(**product.model_dump())

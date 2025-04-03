@@ -33,11 +33,12 @@ class StatusEnum(IntEnum):
 
 
 class Product(Base):
-    name: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str]
     code_work: Mapped[int | None]
-    code_hs: Mapped[int | None]
+    code_hs: Mapped[str | None]
     code_mark_head: Mapped[str] = mapped_column(unique=True)
     code_mark: Mapped[str | None]
+    code_mark_mid: Mapped[str | None]
     doc_in: Mapped[str]
     data_in: Mapped[date | None]
     doc_out: Mapped[str | None]
@@ -58,8 +59,9 @@ class Product(Base):
         code_mark_head: str,
         doc_in: str,
         code_mark: str | None = None,
+        code_mark_mid: str | None = None,
         code_work: int | None = None,
-        code_hs: int | None = None,
+        code_hs: str | None = None,
         data_in: date | None = None,
         doc_out: str | None = None,
         data_out: date | None = None,
@@ -69,12 +71,47 @@ class Product(Base):
         self.code_work = code_work
         self.code_mark_head = code_mark_head
         self.code_mark = code_mark
+        self.code_mark_mid = code_mark_mid
         self.doc_in = doc_in
         self.code_hs = code_hs
         self.data_in = data_in
         self.doc_out = doc_out
         self.data_out = data_out
         self.status = status
+
+    def __repr__(self) -> str:
+        return str(self.name)
+
+
+class ProductHS(Base):
+    code_mark_head: Mapped[str] = mapped_column(unique=True)
+    code_hs: Mapped[str]
+    code_customs: Mapped[str | None]
+    inn_supplier: Mapped[str | None]
+    name: Mapped[str]
+    brand: Mapped[str]
+    name_supplier: Mapped[str | None]
+    data_in: Mapped[date]
+
+    def __init__(
+        self,
+        code_mark_head: str,
+        code_hs: str,
+        name: str,
+        brand: str,
+        data_in: date,
+        code_customs: str | None = None,
+        inn_supplier: str | None = None,
+        name_supplier: str | None = None,
+    ) -> None:
+        self.code_mark_head = code_mark_head
+        self.code_hs = code_hs
+        self.name = name
+        self.brand = brand
+        self.data_in = data_in
+        self.code_customs = code_customs
+        self.inn_supplier = inn_supplier
+        self.name_supplier = name_supplier
 
     def __repr__(self) -> str:
         return str(self.name)

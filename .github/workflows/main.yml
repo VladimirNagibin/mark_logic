@@ -37,7 +37,7 @@ jobs:
           --max-line-length=79 \
           --per-file-ignores="src/migration/versions/*: WPS102" \
           --statistics \
-          --ignore WPS115,WPS601,WPS211,WPS230,WPS404
+          --ignore WPS115,WPS601,WPS211,WPS230,WPS404,WPS201
           # --exit-zero
 
     # HTML-отчет
