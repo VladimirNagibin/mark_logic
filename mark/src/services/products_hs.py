@@ -10,7 +10,7 @@ import pandas as pd
 from fastapi import Depends, HTTPException, UploadFile
 from pandas import DataFrame
 from pydantic import ValidationError
-from sqlalchemy import insert
+from sqlalchemy import Row, Sequence, delete, insert
 from sqlalchemy.exc import (
     DataError,
     IntegrityError,
@@ -24,7 +24,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.v1.api_models.products_hs import ProductHSModel
 from core.logger import logger
 from db.postgres import get_session
-from models.entity import ProductHS
+from models.entity import Product, ProductHS
+from services.helpers import get_stmt
 
 
 class AbstractProductHSRepository(ABC):
@@ -33,6 +34,22 @@ class AbstractProductHSRepository(ABC):
     async def load_data(self, df: DataFrame) -> None:
         """
         Method for load data from DataFrame.
+        """
+        ...
+
+    @abstractmethod
+    async def clear(self) -> None:
+        """
+        Method for clear table.
+        """
+        ...
+
+    @abstractmethod
+    async def get_incorrect(
+        self, key: str
+    ) -> Sequence[Row[tuple[Product, ProductHS]]]:
+        """
+        Method for check table.
         """
         ...
 
@@ -117,6 +134,32 @@ class ProductHSRepository(AbstractProductHSRepository):
                 HTTPStatus.INTERNAL_SERVER_ERROR, "Критическая ошибка сервера"
             )
 
+    async def clear(self) -> None:
+        try:
+            stmt = delete(ProductHS)
+            await self.session.execute(stmt)
+            await self.session.commit()
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                f"Ошибка базы данных: {str(e)}",
+            )
+
+    async def get_incorrect(
+        self, key: str
+    ) -> Sequence[Row[tuple[Product, ProductHS]]]:
+        stmt = get_stmt(key)
+        try:
+            results = await self.session.execute(stmt)
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                f"Ошибка базы данных: {str(e)}",
+            )
+        return results.all()
+
 
 class ProductHSService:
 
@@ -135,7 +178,16 @@ class ProductHSService:
         self.repository = repository
 
     async def load_data(self, df: DataFrame) -> None:
-        return await self.repository.load_data(df)
+        await self.repository.load_data(df)
+
+    async def clear(self) -> None:
+        await self.repository.clear()
+
+    async def check(
+        self, key: str
+    ) -> Sequence[Row[tuple[Product, ProductHS]]]:
+        res = await self.repository.get_incorrect(key)
+        return res
 
     @staticmethod
     async def get_csv_from_zip(file: UploadFile) -> bytes:

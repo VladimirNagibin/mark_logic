@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, File, UploadFile
 
+from api.v1.api_models.products_hs import ProductCheck
 from core.logger import logger
 from services.products_hs import ProductHSService, get_product_hs_service
 
@@ -20,3 +21,45 @@ async def upload_zip(
     await product_hs_service.load_data(df)
     logger.info(f"load {len(df)}")
     return {"status": "success", "processed": len(df)}
+
+
+@producths_router.delete(
+    "/",
+    summary="delete all from table",
+    description="Delete everything from the table.",
+)  # type: ignore
+async def clear(
+    product_hs_service: ProductHSService = Depends(get_product_hs_service),
+) -> dict[str, str]:
+    await product_hs_service.clear()
+    logger.info("clear table")
+    return {"status": "success"}
+
+
+@producths_router.get(
+    "/check/",
+    summary="check data",
+    description="Data reconciliation between the HS and the database.",
+)  # type: ignore
+async def check(
+    key: str,
+    product_hs_service: ProductHSService = Depends(get_product_hs_service),
+) -> list[ProductCheck]:
+    result = await product_hs_service.check(key)
+    if result:
+        res = [
+            (
+                {"name": pr.name, "code_mark_head": pr.code_mark_head}
+                if pr
+                else {}
+            )
+            | (
+                {"name_hs": pr2.name, "code_mark_head_hs": pr2.code_mark_head}
+                if pr2
+                else {}
+            )
+            for pr, pr2 in result
+        ]
+        logger.info("check table")
+        return [ProductCheck(**prod) for prod in res]
+    return []
