@@ -13,10 +13,10 @@ producths_router = APIRouter()
     description="Load informations from HS.",
 )  # type: ignore
 async def upload_zip(
-    file: UploadFile = File(...),
+    file_hs: UploadFile = File(...),
     product_hs_service: ProductHSService = Depends(get_product_hs_service),
 ) -> dict[str, str | int]:
-    csv_content = await product_hs_service.get_csv_from_zip(file)
+    csv_content = await product_hs_service.get_csv_from_zip(file_hs)
     df = await product_hs_service.process_csv(csv_content)
     await product_hs_service.load_data(df)
     logger.info(f"load {len(df)}")
@@ -45,21 +45,39 @@ async def check(
     key: str,
     product_hs_service: ProductHSService = Depends(get_product_hs_service),
 ) -> list[ProductCheck]:
-    result = await product_hs_service.check(key)
-    if result:
-        res = [
-            (
-                {"name": pr.name, "code_mark_head": pr.code_mark_head}
-                if pr
-                else {}
-            )
-            | (
-                {"name_hs": pr2.name, "code_mark_head_hs": pr2.code_mark_head}
-                if pr2
-                else {}
-            )
-            for pr, pr2 in result
+    difference = await product_hs_service.check(key)
+    if difference:
+        diff = [
+            {
+                **(
+                    {"name": pr.name, "code_mark_head": pr.code_mark_head}
+                    if pr
+                    else {}
+                ),
+                **(
+                    {
+                        "name_hs": pr2.name,
+                        "code_mark_head_hs": pr2.code_mark_head,
+                    }
+                    if pr2
+                    else {}
+                ),
+            }
+            for pr, pr2 in difference
         ]
+        #  diff = [
+        #    (
+        #        {"name": pr.name, "code_mark_head": pr.code_mark_head}
+        #        if pr
+        #        else {}
+        #    )
+        #    | (
+        #        {"name_hs": pr2.name, "code_mark_head_hs": pr2.code_mark_head}
+        #        if pr2
+        #        else {}
+        #    )
+        #    for pr, pr2 in result
+        #  ]
         logger.info("check table")
-        return [ProductCheck(**prod) for prod in res]
+        return [ProductCheck(**prod_check) for prod_check in diff]
     return []

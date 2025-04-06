@@ -25,7 +25,7 @@ from api.v1.api_models.products_hs import ProductHSModel
 from core.logger import logger
 from db.postgres import get_session
 from models.entity import Product, ProductHS
-from services.helpers import get_stmt
+from services.help import get_stmt
 
 
 class AbstractProductHSRepository(ABC):
