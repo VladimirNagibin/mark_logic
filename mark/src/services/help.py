@@ -1,6 +1,8 @@
+import io
+import zipfile
 from http import HTTPStatus
 
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from sqlalchemy import and_, select
 from sqlalchemy.sql.selectable import Select
 
@@ -47,3 +49,37 @@ def get_stmt(key: str) -> Select[tuple[Product, ProductHS]]:
         HTTPStatus.BAD_REQUEST,
         "Not valid key",
     )
+
+
+class FileHandler:
+    async def validate_zip(self, file_hs: UploadFile) -> None:
+        if not file_hs.filename.lower().endswith(".zip"):
+            raise HTTPException(HTTPStatus.BAD_REQUEST, "Требуется ZIP-файл")
+
+    async def read_file(self, file_hs: UploadFile) -> bytes:
+        try:
+            return await file_hs.read()  # type: ignore[no-any-return]
+        except Exception as error:
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                f"Ошибка чтения файла: {str(error)}",
+            )
+
+    async def extract_csv(self, content_hs: bytes) -> bytes:
+        try:
+            with zipfile.ZipFile(io.BytesIO(content_hs)) as zf:
+                csv_files = [
+                    file_csv
+                    for file_csv in zf.namelist()
+                    if file_csv.lower().endswith(".csv")
+                ]
+                if not csv_files:
+                    raise HTTPException(
+                        HTTPStatus.BAD_REQUEST, "В архиве нет CSV файлов"
+                    )
+                with zf.open(csv_files[0]) as csv_file:
+                    return csv_file.read()
+        except Exception as error:
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR, f"Ошибка: {str(error)}"
+            )
