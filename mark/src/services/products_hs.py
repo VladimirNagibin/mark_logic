@@ -4,7 +4,7 @@ import zipfile
 from abc import ABC, abstractmethod
 from functools import lru_cache
 from http import HTTPStatus
-from typing import Any
+from typing import Any, Awaitable, Callable, Type
 
 import pandas as pd
 from fastapi import Depends, HTTPException, UploadFile
@@ -20,7 +20,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.dml import ValuesBase
+from sqlalchemy.sql.dml import UpdateBase, ValuesBase
 
 from api.v1.api_models.products_hs import ProductHSModel
 from core.logger import logger
@@ -59,95 +59,20 @@ class ProductHSRepository(AbstractProductHSRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def _execute_and_commit(self, stmt: ValuesBase) -> None:
-        await self.session.execute(stmt)
-        await self.session.commit()
-
     async def load_data(self, df: DataFrame) -> None:
 
         prods_hs: list[dict[str, Any]] = df.to_dict(orient="records")
-        try:
-            validated_prods = [
-                ProductHSModel(**prod_hs).model_dump() for prod_hs in prods_hs
-            ]
-        except ValidationError as error:
-            logger.error(f"Validation failed: {error.json()}")
-            raise HTTPException(
-                HTTPStatus.UNPROCESSABLE_ENTITY, "Некорректные данные"
-            ) from error
+        validated_prods = await self._validate_data(prods_hs)
         stmt = insert(ProductHS).values(validated_prods)
-        try:
-            await self._execute_and_commit(stmt)
-        except IntegrityError as error:
-            # Нарушение целостности данных
-            await self.session.rollback()
-            logger.error(f"Integrity Error: {str(error)}")
-            raise HTTPException(
-                HTTPStatus.CONFLICT,
-                "Конфликт данных (дубликаты, внешние ключи)",
-            )
-
-        except DataError as error:
-            # Некорректные типы данных
-            await self.session.rollback()
-            logger.error(f"Data Error: {str(error)}")
-            raise HTTPException(
-                HTTPStatus.BAD_REQUEST, "Некорректный формат данных"
-            )
-
-        except OperationalError as error:
-            # Проблемы подключения к БД
-            await self.session.rollback()
-            logger.critical(f"Operational Error: {str(error)}")
-            raise HTTPException(
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                "Ошибка подключения к базе данных",
-            )
-
-        except ProgrammingError as error:
-            # Ошибки в SQL-запросе
-            await self.session.rollback()
-            logger.error(f"Programming Error: {str(error)}")
-            raise HTTPException(
-                HTTPStatus.BAD_REQUEST, "Ошибка в запросе к базе данных"
-            )
-
-        except InternalError as error:
-            # Внутренние ошибки PostgreSQL
-            await self.session.rollback()
-            logger.critical(f"Internal DB Error: {str(error)}")
-            raise HTTPException(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                "Внутренняя ошибка базы данных",
-            )
-
-        except SQLAlchemyError as error:
-            # Все остальные ошибки SQLAlchemy
-            await self.session.rollback()
-            logger.error(f"SQLAlchemy Error: {str(error)}")
-            raise HTTPException(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                "Неизвестная ошибка базы данных",
-            )
-
-        except Exception as error:
-            # Непредвиденные ошибки
-            await self.session.rollback()
-            logger.critical(f"Unexpected Error: {str(error)}")
-            raise HTTPException(
-                HTTPStatus.INTERNAL_SERVER_ERROR, "Критическая ошибка сервера"
-            )
+        await self._handle_database_errors(
+            lambda: self._execute_and_commit(stmt)
+        )
 
     async def clear(self) -> None:
         stmt = delete(ProductHS)
-        try:
-            await self._execute_and_commit(stmt)
-        except SQLAlchemyError as error:
-            await self.session.rollback()
-            raise HTTPException(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                f"Ошибка базы данных: {str(error)}",
-            )
+        await self._handle_database_errors(
+            lambda: self._execute_and_commit(stmt)
+        )
 
     async def get_incorrect(
         self, key: str
@@ -162,6 +87,63 @@ class ProductHSRepository(AbstractProductHSRepository):
                 f"Ошибка базы данных: {str(error)}",
             )
         return difference.all()
+
+    async def _execute_and_commit(self, stmt: ValuesBase | UpdateBase) -> None:
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+    async def _validate_data(
+        self, prods_hs: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        try:
+            return [
+                ProductHSModel(**prod_hs).model_dump() for prod_hs in prods_hs
+            ]
+        except ValidationError as error:
+            logger.error(f"Validation failed: {error.json()}")
+            raise HTTPException(
+                HTTPStatus.UNPROCESSABLE_ENTITY, "Некорректные данные"
+            ) from error
+
+    async def _handle_database_errors(
+        self, operation: Callable[[], Awaitable[None]]
+    ) -> None:
+        exception_handlers: dict[Type[Exception], tuple[HTTPStatus, str]] = {
+            IntegrityError: (
+                HTTPStatus.CONFLICT,
+                "Конфликт данных (дубликаты, внешние ключи)",
+            ),
+            DataError: (HTTPStatus.BAD_REQUEST, "Некорректный формат данных"),
+            OperationalError: (
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                "Ошибка подключения к базе данных",
+            ),
+            ProgrammingError: (
+                HTTPStatus.BAD_REQUEST,
+                "Ошибка в запросе к базе данных",
+            ),
+            InternalError: (
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "Внутренняя ошибка базы данных",
+            ),
+            SQLAlchemyError: (
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "Неизвестная ошибка базы данных",
+            ),
+        }
+        try:
+            await operation()
+        except tuple(exception_handlers.keys()) as error:
+            status_code, message = exception_handlers[type(error)]
+            await self.session.rollback()
+            logger.error(f"Error: {str(error)}")
+            raise HTTPException(status_code, message)
+        except Exception as error:
+            await self.session.rollback()
+            logger.critical(f"Unexpected Error: {str(error)}")
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR, "Критическая ошибка сервера"
+            )
 
 
 class ProductHSService:
