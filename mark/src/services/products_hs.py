@@ -20,6 +20,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.dml import ValuesBase
 
 from api.v1.api_models.products_hs import ProductHSModel
 from core.logger import logger
@@ -58,92 +59,94 @@ class ProductHSRepository(AbstractProductHSRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def _execute_and_commit(self, stmt: ValuesBase) -> None:
+        await self.session.execute(stmt)
+        await self.session.commit()
+
     async def load_data(self, df: DataFrame) -> None:
 
-        data: list[dict[str, Any]] = df.to_dict(orient="records")
+        prods_hs: list[dict[str, Any]] = df.to_dict(orient="records")
         try:
-            validated_data = [
-                ProductHSModel(**item).model_dump() for item in data
+            validated_prods = [
+                ProductHSModel(**prod_hs).model_dump() for prod_hs in prods_hs
             ]
-        except ValidationError as e:
-            logger.error(f"Validation failed: {e.json()}")
+        except ValidationError as error:
+            logger.error(f"Validation failed: {error.json()}")
             raise HTTPException(
                 HTTPStatus.UNPROCESSABLE_ENTITY, "Некорректные данные"
-            ) from e
-        stmt = insert(ProductHS).values(validated_data)
+            ) from error
+        stmt = insert(ProductHS).values(validated_prods)
         try:
-            await self.session.execute(stmt)
-            await self.session.commit()
-        except IntegrityError as e:
+            await self._execute_and_commit(stmt)
+        except IntegrityError as error:
             # Нарушение целостности данных
             await self.session.rollback()
-            logger.error(f"Integrity Error: {str(e)}")
+            logger.error(f"Integrity Error: {str(error)}")
             raise HTTPException(
                 HTTPStatus.CONFLICT,
                 "Конфликт данных (дубликаты, внешние ключи)",
             )
 
-        except DataError as e:
+        except DataError as error:
             # Некорректные типы данных
             await self.session.rollback()
-            logger.error(f"Data Error: {str(e)}")
+            logger.error(f"Data Error: {str(error)}")
             raise HTTPException(
                 HTTPStatus.BAD_REQUEST, "Некорректный формат данных"
             )
 
-        except OperationalError as e:
+        except OperationalError as error:
             # Проблемы подключения к БД
             await self.session.rollback()
-            logger.critical(f"Operational Error: {str(e)}")
+            logger.critical(f"Operational Error: {str(error)}")
             raise HTTPException(
                 HTTPStatus.SERVICE_UNAVAILABLE,
                 "Ошибка подключения к базе данных",
             )
 
-        except ProgrammingError as e:
+        except ProgrammingError as error:
             # Ошибки в SQL-запросе
             await self.session.rollback()
-            logger.error(f"Programming Error: {str(e)}")
+            logger.error(f"Programming Error: {str(error)}")
             raise HTTPException(
                 HTTPStatus.BAD_REQUEST, "Ошибка в запросе к базе данных"
             )
 
-        except InternalError as e:
+        except InternalError as error:
             # Внутренние ошибки PostgreSQL
             await self.session.rollback()
-            logger.critical(f"Internal DB Error: {str(e)}")
+            logger.critical(f"Internal DB Error: {str(error)}")
             raise HTTPException(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 "Внутренняя ошибка базы данных",
             )
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError as error:
             # Все остальные ошибки SQLAlchemy
             await self.session.rollback()
-            logger.error(f"SQLAlchemy Error: {str(e)}")
+            logger.error(f"SQLAlchemy Error: {str(error)}")
             raise HTTPException(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 "Неизвестная ошибка базы данных",
             )
 
-        except Exception as e:
+        except Exception as error:
             # Непредвиденные ошибки
             await self.session.rollback()
-            logger.critical(f"Unexpected Error: {str(e)}")
+            logger.critical(f"Unexpected Error: {str(error)}")
             raise HTTPException(
                 HTTPStatus.INTERNAL_SERVER_ERROR, "Критическая ошибка сервера"
             )
 
     async def clear(self) -> None:
+        stmt = delete(ProductHS)
         try:
-            stmt = delete(ProductHS)
-            await self.session.execute(stmt)
-            await self.session.commit()
-        except SQLAlchemyError as e:
+            await self._execute_and_commit(stmt)
+        except SQLAlchemyError as error:
             await self.session.rollback()
             raise HTTPException(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
-                f"Ошибка базы данных: {str(e)}",
+                f"Ошибка базы данных: {str(error)}",
             )
 
     async def get_incorrect(
@@ -151,14 +154,14 @@ class ProductHSRepository(AbstractProductHSRepository):
     ) -> Sequence[Row[tuple[Product, ProductHS]]]:
         stmt = get_stmt(key)
         try:
-            results = await self.session.execute(stmt)
-        except SQLAlchemyError as e:
+            difference = await self.session.execute(stmt)
+        except SQLAlchemyError as error:
             await self.session.rollback()
             raise HTTPException(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
-                f"Ошибка базы данных: {str(e)}",
+                f"Ошибка базы данных: {str(error)}",
             )
-        return results.all()
+        return difference.all()
 
 
 class ProductHSService:
@@ -189,19 +192,25 @@ class ProductHSService:
         res = await self.repository.get_incorrect(key)
         return res
 
-    @staticmethod
-    async def get_csv_from_zip(file: UploadFile) -> bytes:
-        if not file.filename.lower().endswith(".zip"):
+    async def get_csv_from_zip(self, file_hs: UploadFile) -> bytes:
+        if not file_hs.filename.lower().endswith(".zip"):
             raise HTTPException(HTTPStatus.BAD_REQUEST, "Требуется ZIP-файл")
 
         try:
             # Чтение ZIP
-            content = await file.read()
-
-            with zipfile.ZipFile(io.BytesIO(content)) as zf:
+            content_hs = await file_hs.read()
+        except Exception as error:
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                f"Ошибка чтения файла: {str(error)}",
+            )
+        try:
+            with zipfile.ZipFile(io.BytesIO(content_hs)) as zf:
                 # Поиск первого CSV
                 csv_files = [
-                    f for f in zf.namelist() if f.lower().endswith(".csv")
+                    file_csv
+                    for file_csv in zf.namelist()
+                    if file_csv.lower().endswith(".csv")
                 ]
                 if not csv_files:
                     raise HTTPException(
@@ -212,12 +221,12 @@ class ProductHSService:
                 with zf.open(csv_files[0]) as csv_file:
                     csv_content = csv_file.read()
                     return csv_content
-        except Exception as e:
+        except Exception as error:
             raise HTTPException(
-                HTTPStatus.INTERNAL_SERVER_ERROR, f"Ошибка: {str(e)}"
+                HTTPStatus.INTERNAL_SERVER_ERROR, f"Ошибка: {str(error)}"
             )
 
-    async def process_csv(self, content: bytes) -> pd.DataFrame:
+    async def process_csv(self, content_hs: bytes) -> pd.DataFrame:
         """Обработка CSV с переименованием колонок"""
         # Чтение CSV через отдельный поток (pandas блокирующий)
         csv_params: dict[str, Any] = {
@@ -239,7 +248,7 @@ class ProductHSService:
         }
         loop = asyncio.get_event_loop()
         df: DataFrame = await loop.run_in_executor(
-            None, lambda: pd.read_csv(io.BytesIO(content), **csv_params)
+            None, lambda: pd.read_csv(io.BytesIO(content_hs), **csv_params)
         )
         df = df.rename(columns=self.COLUMN_MAPPING)
 

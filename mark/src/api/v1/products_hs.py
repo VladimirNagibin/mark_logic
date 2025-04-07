@@ -47,7 +47,7 @@ async def check(
 ) -> list[ProductCheck]:
     difference = await product_hs_service.check(key)
     if difference:
-        diff = [
+        diff: list[dict[str, str]] = [
             {
                 **(
                     {"name": pr.name, "code_mark_head": pr.code_mark_head}
@@ -65,19 +65,6 @@ async def check(
             }
             for pr, pr2 in difference
         ]
-        #  diff = [
-        #    (
-        #        {"name": pr.name, "code_mark_head": pr.code_mark_head}
-        #        if pr
-        #        else {}
-        #    )
-        #    | (
-        #        {"name_hs": pr2.name, "code_mark_head_hs": pr2.code_mark_head}
-        #        if pr2
-        #        else {}
-        #    )
-        #    for pr, pr2 in result
-        #  ]
         logger.info("check table")
         return [ProductCheck(**prod_check) for prod_check in diff]
     return []
