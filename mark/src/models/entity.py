@@ -6,6 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from db.postgres import Base
 
+EMPTY = ""
+
 
 class StatusEnum(IntEnum):
     """
@@ -35,13 +37,13 @@ class StatusEnum(IntEnum):
 class Product(Base):
     name: Mapped[str]
     code_work: Mapped[int | None]
-    code_hs: Mapped[str | None]
+    code_hs: Mapped[str]
     code_mark_head: Mapped[str] = mapped_column(unique=True)
-    code_mark: Mapped[str | None]
-    code_mark_mid: Mapped[str | None]
+    code_mark: Mapped[str]
+    code_mark_mid: Mapped[str]
     doc_in: Mapped[str]
     data_in: Mapped[date | None]
-    doc_out: Mapped[str | None]
+    doc_out: Mapped[str]
     data_out: Mapped[date | None]
     status: Mapped[int] = mapped_column(
         PgEnum(
@@ -58,12 +60,12 @@ class Product(Base):
         name: str,
         code_mark_head: str,
         doc_in: str,
-        code_mark: str | None = None,
-        code_mark_mid: str | None = None,
+        code_mark: str = EMPTY,
+        code_mark_mid: str = EMPTY,
         code_work: int | None = None,
-        code_hs: str | None = None,
+        code_hs: str = EMPTY,
         data_in: date | None = None,
-        doc_out: str | None = None,
+        doc_out: str = EMPTY,
         data_out: date | None = None,
         status: int = 0,
     ) -> None:
@@ -86,11 +88,11 @@ class Product(Base):
 class ProductHS(Base):
     code_mark_head: Mapped[str] = mapped_column(unique=True)
     code_hs: Mapped[str]
-    code_customs: Mapped[str | None]
-    inn_supplier: Mapped[str | None]
+    code_customs: Mapped[str]
+    inn_supplier: Mapped[str]
     name: Mapped[str]
     brand: Mapped[str]
-    name_supplier: Mapped[str | None]
+    name_supplier: Mapped[str]
     data_in: Mapped[date]
 
     def __init__(
@@ -100,9 +102,9 @@ class ProductHS(Base):
         name: str,
         brand: str,
         data_in: date,
-        code_customs: str | None = None,
-        inn_supplier: str | None = None,
-        name_supplier: str | None = None,
+        code_customs: str = EMPTY,
+        inn_supplier: str = EMPTY,
+        name_supplier: str = EMPTY,
     ) -> None:
         self.code_mark_head = code_mark_head
         self.code_hs = code_hs

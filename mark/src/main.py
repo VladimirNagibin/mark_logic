@@ -10,6 +10,7 @@ from admin.admin_models import ProductAdmin, ProductHSAdmin
 from admin.authenticate import BasicAuthBackend
 from api.v1.health import health_router
 from api.v1.products import product_router
+from api.v1.products_hs import producths_router
 from core.logger import LOGGING, logger
 from core.settings import settings
 from db.postgres import engine
@@ -32,6 +33,7 @@ app = FastAPI(
 
 app.include_router(product_router, prefix="/api/v1/qr", tags=["qr"])
 app.include_router(health_router, prefix="/api/v1/health", tags=["health"])
+app.include_router(producths_router, prefix="/api/v1/hs", tags=["hs"])
 auth_backend = BasicAuthBackend()
 admin = Admin(app, engine, authentication_backend=auth_backend)
 admin.add_view(ProductAdmin)

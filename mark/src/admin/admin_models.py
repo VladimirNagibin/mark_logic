@@ -21,12 +21,13 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
         Product.data_out,
     ]
     column_labels = {
-        PRODUCT_NAME: (
-            "Наименование:(0[NOT_DEFINED] - не определено,"
-            "1[ON_BALANCE] - на остатках,"
-            "2[DEDUCTED] - списан,"
-            "3[IN_HS_DEDUCTED] - есть в ЧЗ нет на остатках)"
-        ),
+        PRODUCT_NAME: "Наименование",
+        #  (
+        #    "Наименование:(0[NOT_DEFINED] - не определено,"
+        #    "1[ON_BALANCE] - на остатках,"
+        #    "2[DEDUCTED] - списан,"
+        #    "3[IN_HS_DEDUCTED] - есть в ЧЗ нет на остатках)"
+        #  ),
         "code_work": "Код work",
         "code_hs": "Код GTIN",
         "code_mark_head": "QR код",
