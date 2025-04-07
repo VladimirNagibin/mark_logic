@@ -129,9 +129,10 @@ class ProductHSRepository(AbstractProductHSRepository):
                 "Неизвестная ошибка базы данных",
             ),
         }
+        exceptions = tuple(exception_handlers.keys())
         try:
             await operation()
-        except tuple(exception_handlers.keys()) as error:
+        except exceptions as error:
             status_code, message = exception_handlers[type(error)]
             await self.session.rollback()
             logger.error(f"Error: {str(error)}")
