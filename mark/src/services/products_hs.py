@@ -4,7 +4,7 @@ import zipfile
 from abc import ABC, abstractmethod
 from functools import lru_cache
 from http import HTTPStatus
-from typing import Any, Awaitable, Callable, Type
+from typing import Any, Awaitable, Callable, Type, TypeAlias
 
 import pandas as pd
 from fastapi import Depends, HTTPException, UploadFile
@@ -28,6 +28,8 @@ from db.postgres import get_session
 from models.entity import Product, ProductHS
 from services.help import get_stmt
 
+IncorrectData: TypeAlias = Sequence[Row[tuple[Product, ProductHS]]]
+
 
 class AbstractProductHSRepository(ABC):
 
@@ -46,9 +48,7 @@ class AbstractProductHSRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_incorrect(
-        self, key: str
-    ) -> Sequence[Row[tuple[Product, ProductHS]]]:
+    async def get_incorrect(self, key: str) -> IncorrectData:
         """
         Method for check table.
         """
@@ -74,9 +74,7 @@ class ProductHSRepository(AbstractProductHSRepository):
             lambda: self._execute_and_commit(stmt)
         )
 
-    async def get_incorrect(
-        self, key: str
-    ) -> Sequence[Row[tuple[Product, ProductHS]]]:
+    async def get_incorrect(self, key: str) -> IncorrectData:
         stmt = get_stmt(key)
         try:
             difference = await self.session.execute(stmt)
@@ -168,45 +166,14 @@ class ProductHSService:
     async def clear(self) -> None:
         await self.repository.clear()
 
-    async def check(
-        self, key: str
-    ) -> Sequence[Row[tuple[Product, ProductHS]]]:
+    async def check(self, key: str) -> IncorrectData:
         res = await self.repository.get_incorrect(key)
         return res
 
     async def get_csv_from_zip(self, file_hs: UploadFile) -> bytes:
-        if not file_hs.filename.lower().endswith(".zip"):
-            raise HTTPException(HTTPStatus.BAD_REQUEST, "Требуется ZIP-файл")
-
-        try:
-            # Чтение ZIP
-            content_hs = await file_hs.read()
-        except Exception as error:
-            raise HTTPException(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                f"Ошибка чтения файла: {str(error)}",
-            )
-        try:
-            with zipfile.ZipFile(io.BytesIO(content_hs)) as zf:
-                # Поиск первого CSV
-                csv_files = [
-                    file_csv
-                    for file_csv in zf.namelist()
-                    if file_csv.lower().endswith(".csv")
-                ]
-                if not csv_files:
-                    raise HTTPException(
-                        HTTPStatus.BAD_REQUEST, "В архиве нет CSV файлов"
-                    )
-
-                # Обработка первого CSV
-                with zf.open(csv_files[0]) as csv_file:
-                    csv_content = csv_file.read()
-                    return csv_content
-        except Exception as error:
-            raise HTTPException(
-                HTTPStatus.INTERNAL_SERVER_ERROR, f"Ошибка: {str(error)}"
-            )
+        await self._validate_file(file_hs)
+        content_hs = await self._read_file_content(file_hs)
+        return await self._process_zip_content(content_hs)
 
     async def process_csv(self, content_hs: bytes) -> pd.DataFrame:
         """Обработка CSV с переименованием колонок"""
@@ -242,6 +209,38 @@ class ProductHSService:
         )
 
         return df
+
+    async def _validate_file(self, file_hs: UploadFile) -> None:
+        if not file_hs.filename.lower().endswith(".zip"):
+            raise HTTPException(HTTPStatus.BAD_REQUEST, "Требуется ZIP-файл")
+
+    async def _read_file_content(self, file_hs: UploadFile) -> bytes:
+        try:
+            return await file_hs.read()  # type: ignore[no-any-return]
+        except Exception as error:
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                f"Ошибка чтения файла: {str(error)}",
+            )
+
+    async def _process_zip_content(self, content_hs: bytes) -> bytes:
+        try:
+            with zipfile.ZipFile(io.BytesIO(content_hs)) as zf:
+                csv_files = [
+                    file_csv
+                    for file_csv in zf.namelist()
+                    if file_csv.lower().endswith(".csv")
+                ]
+                if not csv_files:
+                    raise HTTPException(
+                        HTTPStatus.BAD_REQUEST, "В архиве нет CSV файлов"
+                    )
+                with zf.open(csv_files[0]) as csv_file:
+                    return csv_file.read()
+        except Exception as error:
+            raise HTTPException(
+                HTTPStatus.INTERNAL_SERVER_ERROR, f"Ошибка: {str(error)}"
+            )
 
 
 @lru_cache()
