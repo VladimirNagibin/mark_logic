@@ -16,6 +16,7 @@ class StatusEnum(IntEnum):
     1 - На остатках
     2 - Списано
     3 - Есть в ЧЗ нет на остатках
+
     """
 
     NOT_DEFINED = 0
