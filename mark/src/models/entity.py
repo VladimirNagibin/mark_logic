@@ -82,7 +82,7 @@ class Product(Base):
         self.status = status
 
     def __repr__(self) -> str:
-        return str(self.name)
+        return f"{self.name}: {self.code_mark_head}"
 
 
 class ProductHS(Base):
@@ -116,4 +116,4 @@ class ProductHS(Base):
         self.name_supplier = name_supplier
 
     def __repr__(self) -> str:
-        return str(self.name)
+        return f"{self.name}: {self.code_mark_head}"
