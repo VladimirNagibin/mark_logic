@@ -1,9 +1,9 @@
-FROM python:3.11.10-slim-bullseye
+FROM python:3.12.10-slim-bookworm
 
 WORKDIR /opt/app
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 
 COPY ./pyproject.toml /opt/app
