@@ -79,19 +79,18 @@ async def update_product(
 
 
 @product_router.delete(
-    "/{product_qr}",
-    summary="delete product",
-    description="Delete a specific product.",
+    "/",
+    summary="delete all product",
+    description="Delete all product.",
 )  # type: ignore
-async def delete_product(
-    product_qr: str,
+async def delete_all_product(
     product_service: ProductService = Depends(get_product_service),
 ) -> dict[str, str]:
     try:
-        await product_service.del_product_by_qr(product_qr)
+        await product_service.del_products()
     except Exception as error:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail=f"product with QR {product_qr} not deleted: {error}",
+            detail=f"products not deleted: {error}",
         )
-    return {"result": f"product with QR {product_qr} deleted"}
+    return {"result": "all products deleted"}

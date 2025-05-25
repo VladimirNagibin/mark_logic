@@ -3,7 +3,7 @@ from functools import lru_cache
 from http import HTTPStatus
 
 from fastapi import Depends, HTTPException
-from sqlalchemy import exists, select
+from sqlalchemy import delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.api_models.products import Product as ProductScheme
@@ -41,6 +41,13 @@ class AbstractProductRepository(ABC):
     ) -> Product:
         """
         Method for updating the product.
+        """
+        ...
+
+    @abstractmethod
+    async def del_products(self) -> None:
+        """
+        Method for deleting all products.
         """
         ...
 
@@ -111,6 +118,11 @@ class ProductRepository(AbstractProductRepository):
         await self.session.refresh(priduct_upd)
         return priduct_upd  # type: ignore
 
+    async def del_products(self) -> None:
+        stmt = delete(Product)
+        await self.session.execute(stmt)
+        await self.session.commit()
+
 
 class ProductService:
     def __init__(self, repository: AbstractProductRepository):
@@ -129,6 +141,9 @@ class ProductService:
         self, product_qr: str, product: ProductPutch
     ) -> Product:
         return await self.repository.update_product(product_qr, product)
+
+    async def del_products(self) -> None:
+        return await self.repository.del_products()
 
 
 @lru_cache()
