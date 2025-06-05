@@ -11,7 +11,7 @@ product_router = APIRouter()
 
 
 @product_router.get(
-    "/{product_qr}",
+    "/{product_qr:path}",
     summary="product information",
     description="Information about a specific product.",
 )  # type: ignore
@@ -50,7 +50,7 @@ async def create_product(
 
 
 @product_router.patch(
-    "/{product_qr}",
+    "/{product_qr:path}",
     summary="update product",
     description="Update a specific product.",
 )  # type: ignore
@@ -79,7 +79,7 @@ async def update_product(
 
 
 @product_router.delete(
-    "/{product_qr}",
+    "/{product_qr:path}",
     summary="delete product",
     description="Delete a specific product.",
 )  # type: ignore
