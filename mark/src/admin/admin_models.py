@@ -1,4 +1,6 @@
 from sqladmin import ModelView
+from wtforms import Form, StringField
+from wtforms.validators import Optional
 
 from models.entity import Product, ProductHS
 
@@ -55,6 +57,30 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
     can_edit = True
     can_delete = True
     page_size = 50
+
+    async def scaffold_form(
+        self, rules: list[str] | None = None
+    ) -> type[Form]:
+        form_class = await super().scaffold_form(rules)
+        default_render_kw = {
+            "class": "form-control",  # Основной класс стилей
+            "autocomplete": "off",  # Стандартный атрибут в SQLAdmin
+            "spellcheck": "false",  # Отключение проверки орфографии
+        }
+        form_class.code_mark = StringField(
+            "QR криптохвост",
+            validators=[Optional()],
+            render_kw=default_render_kw,
+        )
+        form_class.code_mark_mid = StringField(
+            "QR сред", validators=[Optional()], render_kw=default_render_kw
+        )
+        form_class.doc_out = StringField(
+            "Исходящий документ",
+            validators=[Optional()],
+            render_kw=default_render_kw,
+        )
+        return form_class  # type: ignore
 
 
 class ProductHSAdmin(ModelView, model=ProductHS):  # type: ignore
