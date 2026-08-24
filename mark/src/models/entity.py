@@ -54,6 +54,7 @@ class Product(Base):
             server_default="NOT_DEFINED",
         )
     )
+    product_group: Mapped[int] = mapped_column(default=0, server_default="0")
 
     def __init__(
         self,
@@ -68,6 +69,7 @@ class Product(Base):
         doc_out: str = EMPTY,
         data_out: date | None = None,
         status: int = 0,
+        product_group: int = 0,
     ) -> None:
         self.name = name
         self.code_work = code_work
@@ -80,6 +82,7 @@ class Product(Base):
         self.doc_out = doc_out
         self.data_out = data_out
         self.status = status
+        self.product_group = product_group
 
     def __repr__(self) -> str:
         return f"{self.name}: {self.code_mark_head}"
