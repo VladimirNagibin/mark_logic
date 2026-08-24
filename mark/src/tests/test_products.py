@@ -13,7 +13,7 @@ from tests.conftest import get_test_app
 DOC_IN_FIELD = "doc_in"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore
 async def test_fetch_product_success(mock_product_service: MagicMock) -> None:
     # Arrange
     test_qr = "test_qr_123"
@@ -39,7 +39,7 @@ async def test_fetch_product_success(mock_product_service: MagicMock) -> None:
     mock_product_service.get_product_by_qr.assert_awaited_once_with(test_qr)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore
 async def test_fetch_product_not_found(
     mock_product_service: MagicMock,
 ) -> None:
@@ -59,7 +59,7 @@ async def test_fetch_product_not_found(
     assert response.json() == {"detail": "product not found"}
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore
 async def test_create_product_success(mock_product_service: MagicMock) -> None:
     # Arrange
     new_product = ProductScheme(
@@ -84,7 +84,7 @@ async def test_create_product_success(mock_product_service: MagicMock) -> None:
     mock_product_service.create_product.assert_awaited_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore
 async def test_create_product_failure(mock_product_service: MagicMock) -> None:
     # Arrange
     not_correct_product = ProductScheme(
@@ -107,7 +107,7 @@ async def test_create_product_failure(mock_product_service: MagicMock) -> None:
     assert "product not created" in response.json()["detail"]
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore
 async def test_update_product_success(mock_product_service: MagicMock) -> None:
     # Arrange
     test_data: dict[str, Any] = {
@@ -138,7 +138,7 @@ async def test_update_product_success(mock_product_service: MagicMock) -> None:
     )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore
 async def test_update_product_not_found(
     mock_product_service: MagicMock,
 ) -> None:

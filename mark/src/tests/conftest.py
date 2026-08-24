@@ -15,7 +15,7 @@ def get_test_app(mock_service: ProductService) -> FastAPI:
     return app
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture  # type: ignore
 def mock_product_service() -> Generator[MagicMock, Any, None]:
     mock = MagicMock(spec=ProductService)
     mock.get_product_by_qr = AsyncMock()
