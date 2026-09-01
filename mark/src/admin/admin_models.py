@@ -21,6 +21,7 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
         Product.data_in,
         Product.doc_out,
         Product.data_out,
+        Product.product_group,
     ]
     column_labels = {
         PRODUCT_NAME: "Наименование",
@@ -40,6 +41,7 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
         "doc_out": "Исходящий документ",
         "data_out": "Дата выбытия",
         "status": "Статус",
+        "product_group": "Товарная группа(0-элит,1-одежда,2-косм)",
     }
     column_default_sort = [(PRODUCT_NAME, True)]
     column_sortable_list = [
@@ -52,6 +54,7 @@ class ProductAdmin(ModelView, model=Product):  # type: ignore
         Product.name,
         Product.code_mark_head,
         Product.doc_in,
+        Product.product_group,
     ]
     can_create = True
     can_edit = True
