@@ -7,9 +7,11 @@ from sqlalchemy import delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.api_models.products import Product as ProductScheme
+from api.v1.api_models.products import ProductCodeHsCheckResult
 from api.v1.api_models.products import ProductPutch
 from db.postgres import get_session
 from models.entity import Product
+from services.code_hs import check_code_hs_products
 
 
 class AbstractProductRepository(ABC):
@@ -51,8 +53,22 @@ class AbstractProductRepository(ABC):
         """
         ...
 
+    @abstractmethod
+    async def check_code_hs(self) -> ProductCodeHsCheckResult:
+        """
+        Method for checking and filling code_hs from code_mark_head.
+        """
+        ...
 
-class ProductRepository(AbstractProductRepository):
+    @abstractmethod
+    async def get_product_by_code_hs(self, code_hs: str) -> Product | None:
+        """
+        Method for getting one product by code_hs.
+        """
+        ...  # noqa: WPS463
+
+
+class ProductRepository(AbstractProductRepository):  # noqa: WPS214
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -123,8 +139,24 @@ class ProductRepository(AbstractProductRepository):
         await self.session.execute(stmt)
         await self.session.commit()
 
+    async def check_code_hs(self) -> ProductCodeHsCheckResult:
+        product_result = await self.session.execute(select(Product))
+        stats = check_code_hs_products(product_result.scalars().all())
+        if stats.changed:
+            await self.session.commit()
+        return stats.to_result()
 
-class ProductService:
+    async def get_product_by_code_hs(self, code_hs: str) -> Product | None:
+        product_result = await self.session.execute(
+            select(Product).filter(Product.code_hs == code_hs).limit(1)
+        )
+        product = product_result.scalars().first()
+        if not product:
+            return None
+        return product  # type: ignore
+
+
+class ProductService:  # noqa: WPS214
     def __init__(self, repository: AbstractProductRepository):
         self.repository = repository
 
@@ -144,6 +176,12 @@ class ProductService:
 
     async def del_products(self) -> None:
         return await self.repository.del_products()
+
+    async def check_code_hs(self) -> ProductCodeHsCheckResult:
+        return await self.repository.check_code_hs()
+
+    async def get_product_by_code_hs(self, code_hs: str) -> Product | None:
+        return await self.repository.get_product_by_code_hs(code_hs)
 
 
 @lru_cache()

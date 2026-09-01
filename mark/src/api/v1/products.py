@@ -3,11 +3,44 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.v1.api_models.products import Product as ProductScheme
+from api.v1.api_models.products import ProductCodeHsCheckResult
+from api.v1.api_models.products import ProductGroup
 from api.v1.api_models.products import ProductPutch
 from core.logger import logger
 from services.products import ProductService, get_product_service
 
 product_router = APIRouter()
+
+
+@product_router.post(
+    "/check-code-hs/",
+    summary="check and fill code_hs",
+    description="Fill empty code_hs from mark GTIN and report mismatches.",
+)  # type: ignore
+async def check_code_hs(
+    product_service: ProductService = Depends(get_product_service),
+) -> ProductCodeHsCheckResult:
+    check_result = await product_service.check_code_hs()
+    logger.info("check code_hs")
+    return check_result
+
+
+@product_router.get(
+    "/code-hs/{code_hs}",
+    summary="product group by code_hs",
+    description="Return product_group for one product with the given code_hs.",
+)  # type: ignore
+async def fetch_product_group(
+    code_hs: str,
+    product_service: ProductService = Depends(get_product_service),
+) -> ProductGroup:
+    product = await product_service.get_product_by_code_hs(code_hs)
+    if not product:
+        logger.error(f"Product with code_hs: {code_hs} not found.")
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="product not found"
+        )
+    return ProductGroup(product_group=product.product_group)
 
 
 @product_router.get(
