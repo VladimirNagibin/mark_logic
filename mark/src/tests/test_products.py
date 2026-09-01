@@ -6,6 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.v1.api_models.products import Product as ProductScheme
+from api.v1.api_models.products import ProductCodeHsCheckResult
+from api.v1.api_models.products import ProductCodeHsMismatch
 from api.v1.api_models.products import ProductPutch
 from models.entity import StatusEnum
 from tests.conftest import get_test_app
@@ -157,3 +159,29 @@ async def test_update_product_not_found(
 
     # Assert
     assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio  # type: ignore
+async def test_check_code_hs_success(mock_product_service: MagicMock) -> None:
+    check_result = ProductCodeHsCheckResult(
+        filled=2,
+        updated=1,
+        incorrect=[
+            ProductCodeHsMismatch(
+                name="Bad Product",
+                code_mark_head="0104601234567890XXXX",
+                code_hs="999",
+                expected_code_hs="04601234567890",
+            )
+        ],
+    )
+    mock_product_service.check_code_hs.return_value = check_result
+
+    test_app = get_test_app(mock_product_service)
+    client = TestClient(test_app)
+
+    response = client.post("/check-code-hs/")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == check_result.model_dump()
+    mock_product_service.check_code_hs.assert_awaited_once()
