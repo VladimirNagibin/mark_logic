@@ -48,3 +48,7 @@ class ProductCodeHsCheckResult(BaseModel):  # type: ignore
     filled: int
     updated: int
     incorrect: list[ProductCodeHsMismatch]
+
+
+class ProductGroup(BaseModel):  # type: ignore
+    product_group: int
