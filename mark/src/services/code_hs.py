@@ -81,7 +81,7 @@ def resolve_code_hs(
     current = code_hs or EMPTY
     if expected is None:
         return CodeHsAction.INCORRECT, None
-    if not current:
+    if not current or current == GTIN_PAD:
         return CodeHsAction.FILL, expected
     if current == expected:
         return CodeHsAction.OK, None
