@@ -60,8 +60,15 @@ class AbstractProductRepository(ABC):
         """
         ...
 
+    @abstractmethod
+    async def get_product_by_code_hs(self, code_hs: str) -> Product | None:
+        """
+        Method for getting one product by code_hs.
+        """
+        ...  # noqa: WPS463
 
-class ProductRepository(AbstractProductRepository):
+
+class ProductRepository(AbstractProductRepository):  # noqa: WPS214
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -139,8 +146,17 @@ class ProductRepository(AbstractProductRepository):
             await self.session.commit()
         return stats.to_result()
 
+    async def get_product_by_code_hs(self, code_hs: str) -> Product | None:
+        product_result = await self.session.execute(
+            select(Product).filter(Product.code_hs == code_hs).limit(1)
+        )
+        product = product_result.scalars().first()
+        if not product:
+            return None
+        return product  # type: ignore
 
-class ProductService:
+
+class ProductService:  # noqa: WPS214
     def __init__(self, repository: AbstractProductRepository):
         self.repository = repository
 
@@ -163,6 +179,9 @@ class ProductService:
 
     async def check_code_hs(self) -> ProductCodeHsCheckResult:
         return await self.repository.check_code_hs()
+
+    async def get_product_by_code_hs(self, code_hs: str) -> Product | None:
+        return await self.repository.get_product_by_code_hs(code_hs)
 
 
 @lru_cache()
