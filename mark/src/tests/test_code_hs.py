@@ -3,6 +3,7 @@ import pytest
 from api.v1.api_models.products import ProductCodeHsCheckResult
 from services.code_hs import (
     CodeHsAction,
+    GTIN_PAD,
     check_code_hs_products,
     extract_gtin_from_mark,
     resolve_code_hs,
@@ -42,6 +43,7 @@ def test_extract_gtin_from_mark(mark_head: str, gtin: str | None) -> None:
     ("code_hs", "expected", "action", "new_value"),
     [
         ("", GTIN, CodeHsAction.FILL, GTIN),
+        (GTIN_PAD, GTIN, CodeHsAction.FILL, GTIN),
         (GTIN, GTIN, CodeHsAction.OK, None),
         (GTIN13, GTIN, CodeHsAction.UPDATE, GTIN),
         (BAD_HS, GTIN, CodeHsAction.INCORRECT, None),
@@ -60,6 +62,7 @@ def test_resolve_code_hs(
 def test_check_code_hs_fills_updates_and_reports() -> None:
     products = [
         FakeProduct(MARK_HEAD, ""),
+        FakeProduct(MARK_HEAD, GTIN_PAD),
         FakeProduct(MARK_HEAD, GTIN13),
         FakeProduct(MARK_HEAD, GTIN),
         FakeProduct(MARK_HEAD, BAD_HS, name="Bad"),
@@ -70,8 +73,8 @@ def test_check_code_hs_fills_updates_and_reports() -> None:
     codes = [prod.code_hs for prod in products]
     mismatch = check_result.incorrect[0]
 
-    assert codes == [GTIN, GTIN, GTIN, BAD_HS]
-    assert (check_result.filled, check_result.updated) == (1, 1)
+    assert codes == [GTIN, GTIN, GTIN, GTIN, BAD_HS]
+    assert (check_result.filled, check_result.updated) == (2, 1)
     assert (mismatch.name, mismatch.code_hs, mismatch.expected_code_hs) == (
         "Bad",
         BAD_HS,
