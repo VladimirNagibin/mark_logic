@@ -35,3 +35,16 @@ class ProductPutch(BaseModel):  # type: ignore
     status: StatusEnum | None = None
 
     model_config = ConfigDict(extra="forbid")
+
+
+class ProductCodeHsMismatch(BaseModel):  # type: ignore
+    name: str
+    code_mark_head: str
+    code_hs: str
+    expected_code_hs: str | None = None
+
+
+class ProductCodeHsCheckResult(BaseModel):  # type: ignore
+    filled: int
+    updated: int
+    incorrect: list[ProductCodeHsMismatch]

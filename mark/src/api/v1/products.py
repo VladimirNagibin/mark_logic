@@ -3,11 +3,25 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.v1.api_models.products import Product as ProductScheme
+from api.v1.api_models.products import ProductCodeHsCheckResult
 from api.v1.api_models.products import ProductPutch
 from core.logger import logger
 from services.products import ProductService, get_product_service
 
 product_router = APIRouter()
+
+
+@product_router.post(
+    "/check-code-hs/",
+    summary="check and fill code_hs",
+    description="Fill empty code_hs from mark GTIN and report mismatches.",
+)  # type: ignore
+async def check_code_hs(
+    product_service: ProductService = Depends(get_product_service),
+) -> ProductCodeHsCheckResult:
+    check_result = await product_service.check_code_hs()
+    logger.info("check code_hs")
+    return check_result
 
 
 @product_router.get(

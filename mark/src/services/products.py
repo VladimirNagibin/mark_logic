@@ -7,9 +7,11 @@ from sqlalchemy import delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.api_models.products import Product as ProductScheme
+from api.v1.api_models.products import ProductCodeHsCheckResult
 from api.v1.api_models.products import ProductPutch
 from db.postgres import get_session
 from models.entity import Product
+from services.code_hs import check_code_hs_products
 
 
 class AbstractProductRepository(ABC):
@@ -48,6 +50,13 @@ class AbstractProductRepository(ABC):
     async def del_products(self) -> None:
         """
         Method for deleting all products.
+        """
+        ...
+
+    @abstractmethod
+    async def check_code_hs(self) -> ProductCodeHsCheckResult:
+        """
+        Method for checking and filling code_hs from code_mark_head.
         """
         ...
 
@@ -123,6 +132,13 @@ class ProductRepository(AbstractProductRepository):
         await self.session.execute(stmt)
         await self.session.commit()
 
+    async def check_code_hs(self) -> ProductCodeHsCheckResult:
+        product_result = await self.session.execute(select(Product))
+        stats = check_code_hs_products(product_result.scalars().all())
+        if stats.changed:
+            await self.session.commit()
+        return stats.to_result()
+
 
 class ProductService:
     def __init__(self, repository: AbstractProductRepository):
@@ -144,6 +160,9 @@ class ProductService:
 
     async def del_products(self) -> None:
         return await self.repository.del_products()
+
+    async def check_code_hs(self) -> ProductCodeHsCheckResult:
+        return await self.repository.check_code_hs()
 
 
 @lru_cache()

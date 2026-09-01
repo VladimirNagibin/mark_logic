@@ -21,4 +21,5 @@ def mock_product_service() -> Generator[MagicMock, Any, None]:
     mock.get_product_by_qr = AsyncMock()
     mock.create_product = AsyncMock()
     mock.update_product = AsyncMock()
+    mock.check_code_hs = AsyncMock()
     return mock
