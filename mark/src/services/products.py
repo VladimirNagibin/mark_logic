@@ -11,7 +11,7 @@ from api.v1.api_models.products import ProductCodeHsCheckResult
 from api.v1.api_models.products import ProductPutch
 from db.postgres import get_session
 from models.entity import Product
-from services.code_hs import check_code_hs_products
+from services.code_hs import check_code_hs_products, extract_gtin_from_mark
 
 
 class AbstractProductRepository(ABC):
@@ -83,6 +83,9 @@ class ProductRepository(AbstractProductRepository):  # noqa: WPS214
                 status_code=HTTPStatus.CONFLICT,
                 detail=(f"QR: {product.code_mark_head} exists"),
             )
+        if not product.code_hs:
+            if code_hs := extract_gtin_from_mark(product.code_mark_head):
+                product.code_hs = code_hs
 
         new_product = Product(**product.model_dump())
         self.session.add(new_product)
