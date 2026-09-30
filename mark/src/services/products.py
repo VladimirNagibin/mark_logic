@@ -84,7 +84,8 @@ class ProductRepository(AbstractProductRepository):  # noqa: WPS214
                 detail=(f"QR: {product.code_mark_head} exists"),
             )
         if not product.code_hs:
-            if code_hs := extract_gtin_from_mark(product.code_mark_head):
+            code_hs = extract_gtin_from_mark(product.code_mark_head)
+            if code_hs:
                 product.code_hs = code_hs
 
         new_product = Product(**product.model_dump())
