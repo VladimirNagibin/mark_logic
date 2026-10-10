@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 
 COPY ./pyproject.toml /opt/app
+COPY ./poetry.lock /opt/app
 
 RUN python -m pip install --no-cache-dir poetry==2.1.1 \
     && poetry config virtualenvs.create false \
